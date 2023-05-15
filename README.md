@@ -2,13 +2,47 @@
 実行コマンド。pythonではbash: python: command not foundのエラーが出る。
 python3をpip installしているため。
 ```
-$ python3 export_array2.py
+$ python3 export_array4.py
 ```
 
 # 修正事項
 1. 親領域と子領域の重複
 完全な矩形領域でない場合は、大きさの異なる矩形領域の集合である。
 この場合、最小の矩形領域に加えて、それらの集合である1つの大きな矩形領域が別に検出されてしまう。
+
+→ 概ね解決？
+矩形領域取得の際に、面積の小さい矩形領域を複数含み、それらが外接する最小の矩形領域も余計に取得されていた。
+しかし、膨張処理にcv2.Cannyでない方法を採用することで解決。
+（sample_result3, 4の2種の画像を参照）
+
+2. 領域取得の漏れ
+特に面積の小さなもの（履歴書の学歴・職歴の月など）の取得が一部できていない場合がある。
+（未検証だが、面積が小さいことに加え、それらが隣接している場合に起こる傾向にある）
+また、文字を誤って極小領域として認識してしまう場合もある。
+sample_result_picture2.pngでは、上11個、下48個の枠を取得する想定だが、結果は上13個、下44個の枠が取得されている。
+これは、上部で写真を張る箇所に書かれている文字が誤って領域取得され、想定よりも領域の数が多く、
+下部で一部の欄（月の欄、例えば下から4行目の、48番目の領域が本来は年と月の2つに分かれて取得されなければならない）
+
+3. 値の補正
+```
+img_gray = cv2.blur(img_gray, (3,3))
+img_bw = cv2.adaptiveThreshold(img_gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 1101, 10)
+```
+上の2行の関数呼び出しの際、引数の値は自分で検証しながら適切な値を決定している。
+ここを解決しなければ研究の意義がそのままなくなるため、特に修正が必要な箇所である。
+
+# 検証事項
+1. 撮影環境
+入力画像は撮影する環境に依存し、出力画像に大きく影響する。  
+よって、以下の条件を変更・検証して機能の実装を進めていくべきである。  
+- カメラとの距離
+- 撮影場所の明るさ
+- 撮影角度
+
+2. 別のテンプレートによる入力
+現在は履歴書だけが入力だが、他のテンプレートでどのように動作するかは調査する必要がある。
+具体的には、それぞれでテンプレートそのままの画像と、テンプレートを印刷してスマホで撮った画像の2種類が必要である。
+さらに、枠のない入力画像（下線のみが引いてあるなど）の場合はどのように動作するかも調べる必要がある。
 
 # 各関数の詳細
 
@@ -25,12 +59,24 @@ imread：画像ファイルを読み込んで、多次元配列(numpy.ndarray)�
 ## グレースケール化
 
 ```
-gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 ```
 BGR画像をグレースケール変換する。
 
-第一引数：多次元配列  
+第一引数：入力画像（多次元配列）  
 第二引数：変更前の画像の色と、変更後の画像の色を示す定数
+
+## 画像の平滑化
+```
+img_gray = cv2.blur(img_gray, (3,3))
+```
+ブラー処理を行う。
+カーネルサイズのうち、サイズ領域の平均値を中央の値（アンカー）に適応する。
+これによって、画像をぼかすことができる。
+検証したところ、履歴書の入力画像については、入力画像にブラー処理を適応してグレースケール化する場合も、グレースケール後の画像にブラー処理を適応する場合も、枠の取得結果に変化はなかった。
+
+第一引数：入力画像（多次元配列）  
+第二引数：カーネルサイズ
 
 ## エッジ抽出
 
@@ -44,7 +90,59 @@ minVal以下であれば、エッジではないと判断する。
 第一引数：エッジかどうかを判断する閾値(minVal)  
 第二引数：エッジかどうかを判断する閾値(maxVal)  
 
-一般に、数値が大きいほどエッジが検出されにくく、小さいほどエッジが検出されやすくなる。
+一般に、第一引数の数値が大きいほどエッジが検出されにくく、小さいほどエッジが検出されやすくなる。
+
+### export_array3での変更後
+
+```
+retval, img_bw = cv2.threshold(img_gray, 150, 300, cv2.THRESH_BINARY_INV)
+```
+ある1つの閾値を決めて、2値化を行うcv2.thresholdに変更。  
+この関数の特徴として、代入先に返り値として代入される閾値も含めた2つが必要である。
+
+第一引数：入力画像（多次元配列）  
+第二引数：閾値  
+第三引数：閾値（最大）  
+第四引数：二値化の方法
+
+二値化の方法にはいくつか種類がある。
+- cv2.THRESH_BINARY
+- cv2.THRESH_BINARY_INV
+- cv2.THRESH_TRUNC
+- cv2.THRESH_TOZERO
+- cv2.THRESH_TOZERO_INV
+- cv2.THRESH_OTSU
+- cv2.THRESH_TRIANGLE
+
+この中でも、第三引数の閾値は、cv2.THRESH_BINARY, cv2.THRESH_BINARY_INV の場合に、使用する。
+各方法の詳細については下記リンク参照。  
+[OpenCV – 画像処理の2値化の仕組みと cv2.threshold() の使い方](https://pystyle.info/opencv-image-binarization/)
+
+### export_array4での変更後
+```
+img_bw = cv2.adaptiveThreshold(img_gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 1101, 10)
+```
+cv2.adaptiveThresholdに変更。
+二値化には全画素を同じ閾値で変換する大域的二値化と、領域ごとに異なる閾値で変換する適応的二値化の2つの方法がある。  
+明るさが均一でない場合は、大域的二値化ではうまく二値化ができない場合がある。  
+この変更によって領域取得の精度は向上したものの、閾値は適宜自分で決定していることが明確な改善点である。詳しくは 修正事項.3 を参照
+
+第一引数：入力画像（多次元配列）
+第二引数：二値化後の輝度値
+第三引数：適応的閾値処理で使用するアルゴリズム
+第四引数：二値化の種類
+第五引数：閾値計算のための近傍サイズ
+第六引数：平均あるいは加重平均から引かれる値
+
+第三引数のアルゴリズムには2種類ある。
+- cv2.ADAPTIVE_THRESH_MEAN_C
+- cv2.ADAPTIVE_THRESH_GAUSSIAN_C
+
+また、第四引数の二値化の種類も2種類ある。
+- cv2.THRESH_BINARY
+- cv2.THRESH_BINARY_INV
+詳しくは下記ページを参照。
+[【OpenCV/Python】adaptiveThresholdの処理アルゴリズム](https://imagingsolution.net/program/python/opencv-python/adaptivethreshold_algorithm/)
 
 ## 二値画像の保存
 
@@ -54,7 +152,7 @@ cv2.imwrite('edges.png', edges)
 多次元配列の情報をもとに、画像を保存する。
 
 第一引数：保存先の画像ファイル名  
-第二引数：多次元配列  
+第二引数：入力画像（多次元配列）  
 第三引数（任意）：リスト型にてパラメータを指定  
 
 ## 膨張処理
@@ -69,17 +167,33 @@ kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
 - cv2.MORPH_CROSS: 十字
 - cv2.MORPH_ELLIPSE: 楕円
 
-第二引数：カーネルの大きさ
-
+第二引数：カーネルの大きさ  
 第三引数：アンカー部分。(-1, -1)の場合は、カーネルの中心
+
+## export_array3以降での変更
+```
+kernel = np.ones((2,2), np.uint8)
+```
+カーネル作成の際に、np.ones関数を用いた。  これによって、2×2配列が形状として指定される。  
+uint8はNumPyにおけるデータ型dtypeのひとつであり、符号なし8ビット整数型を指す。  
+int8でも取得領域に変化がなかったため、あまり影響がない箇所？
+
+第一引数：配列の形状  
+第二引数：データ型  
+第三引数（任意）：初期値（'C'または'F'が入り、配列のデータの保存の仕方を指定する）
+
+詳しくは下記ページ参照。
+- [AdaptiveThresholdで照明環境が微妙な画像を二値化](https://opqrstuvcut.github.io/blog/p/adaptivethreshold%E3%81%A7%E7%85%A7%E6%98%8E%E7%92%B0%E5%A2%83%E3%81%8C%E5%BE%AE%E5%A6%99%E3%81%AA%E7%94%BB%E5%83%8F%E3%82%92%E4%BA%8C%E5%80%A4%E5%8C%96/)
+- [要素が1の配列を生成するnumpy.ones関数の使い方](https://deepage.net/features/numpy-ones.html)
 
 ```
 edges = cv2.dilate(edges, kernel)
 ```
 膨張処理。カーネル内の画素値が1である画素が1つでも含まれている場合、出力画素の画素値を1にする。これによって、二値化する際の白の要素が増える。
 
-第一引数：多次元配列  
+第一引数：入力画像（多次元配列）  
 第二引数：カーネル
+第三引数（任意）：イテレーション（数が大きくなるとより膨張する）
 
 ## 二値画像から輪郭抽出
 
@@ -88,7 +202,7 @@ contours, hierarchy = cv2.findContours(edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_SI
 ```
 二値画像から輪郭を抽出する。入力画像は、非0の画素を1とした二値画像である。
 
-第一引数：入力画像  
+第一引数：入力画像（多次元配列）  
 第二引数：輪郭を検索する方法の指定
 - cv2.RETR_EXTERNAL: 一番外側の輪郭のみ抽出する
 - cv2.RETR_LIST: すべての輪郭を抽出するが、階層構造は作成しない
@@ -168,7 +282,7 @@ cv2.drawContours(img, rects, i, color, 2)
 ```
 輪郭の抽出情報をもとに、輪郭の描画を行う。
 
-第一引数：多次元配列  
+第一引数：入力画像（多次元配列）  
 第二引数：輪郭を形成する画素情報  
 第三引数：輪郭を形成する画素のインデックス番号の指定。0を指定すると、1番目の輪郭を形成する画素のみを描画する。  
 第四引数：輪郭を形成する画素の色の指定。BGR指定。  
@@ -185,7 +299,7 @@ cv2.imwrite('img.png', img)
 画像の保存を行う。
 
 第一引数：保存先の画像ファイル名  
-第二引数：多次元配列  
+第二引数：入力画像（多次元配列）  
 
 # URL
 - [OpenCVで使われるcvtcolorとは?cvtcolorの活用例を徹底紹介](https://kuroro.blog/python/7IFCPLA4DzV8nUTchKsb/)
@@ -193,6 +307,8 @@ cv2.imwrite('img.png', img)
 - [cv2.Canny(): Canny法によるエッジ検出の調整をいい感じにする](https://qiita.com/Takarasawa_/items/1556bf8e0513dca34a19)
 
 - [cv2.Canny(): Canny法によるエッジ検出の自動化](https://qiita.com/kotai2003/items/662c33c15915f2a8517e)
+
+- [OpenCV – 画像処理の2値化の仕組みと cv2.threshold() の使い方](https://pystyle.info/opencv-image-binarization/)
 
 - [OpenCVで使われるimwriteとは?imwriteの定義から使用例をご紹介](https://kuroro.blog/python/i0tNE1Mp8aEz8Z7n6Ggg/)
 
