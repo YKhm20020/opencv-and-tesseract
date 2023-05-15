@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-img = cv2.imread('./sample.png')
+img = cv2.imread('./sample3.png')
 
 # BGR -> グレースケール
 #img = cv2.blur(img, (3,3))
