@@ -4,8 +4,16 @@ import numpy as np
 import copy
 import json
 
+def convert_nparr_to_image(img):
+    ret, encoded = cv2.imencode(".jpg", img)
+    display(Image(encoded))
+    
+def create_pos_data(contour):
+    x, y, w, h = cv2.boundingRect(contour)
+    return {'x': x, 'y': y, 'width': w, 'height': h}
+
 #img.shapeに高さ、幅、チャンネル情報を分割代入
-img = cv2.imread('./sample.png')
+img = cv2.imread('sample.png')
 height, width, channels = img.shape
 
 #インプット画像をグレースケール化
@@ -41,7 +49,7 @@ for i in range(len(contours)):
         continue  # 面積が小さいものは除く
     
     # 階層が第１じゃなかったら ... 
-    if hierarchy[0][i]<img class="ranking-number" src="https://proglearn.com/wp-content/themes/jin/img/rank03.png" /> != -1:
+    if hierarchy[0][i][3] != -1:
         # 配列に追加
         export_array['results'].append(create_pos_data(contours[i]))
         # 画像に当該の枠線を追加

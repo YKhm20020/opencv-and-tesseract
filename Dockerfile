@@ -25,6 +25,7 @@ RUN apt-get install -y git
 # install python and pip
 RUN apt install -y python3 python3-pip
 RUN pip install --upgrade pip
+RUN pip install ipython
 
 # set working directory and copy files
 WORKDIR /usr/src/app
