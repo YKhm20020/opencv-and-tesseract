@@ -17,10 +17,9 @@ RUN apt-get update -y \
     && apt-get upgrade -y \
     && apt-get autoremove -y \
     && apt-get install -y software-properties-common \
-    && add-apt-repository ppa:git-core/ppa \
-    && apt-get update -y
+    && add-apt-repository ppa:git-core/ppa
 
-RUN apt-get install -y git 
+RUN apt-get install -y git
 
 # install python and pip
 RUN apt install -y python3 python3-pip
