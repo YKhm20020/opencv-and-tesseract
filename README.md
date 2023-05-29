@@ -1,8 +1,11 @@
 # コマンド
 実行コマンド。pythonではbash: python: command not foundのエラーが出る。
-python3をpip installしているため。
+python3をpip installしているため。  
+実行するファイルは、export_array(数字).pyであり、その時点で数字が最大のものが総合的に領域取得がうまくいっているバージョンである。  
+
+最新バージョン: export_array6.py (2023/05/29時点)  
 ```
-$ python3 export_array4.py
+$ python3 export_array6.py
 ```
 
 # 修正事項
