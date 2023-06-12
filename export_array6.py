@@ -1,7 +1,9 @@
 import cv2
 import numpy as np
 
-img = cv2.imread('./sample/sample.jpg')
+inputImage = './sample/sample.jpg'
+
+img = cv2.imread(inputImage)
 
 # BGR -> グレースケール
 img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
