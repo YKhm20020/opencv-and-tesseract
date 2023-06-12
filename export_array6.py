@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-img = cv2.imread('./sample.png')
+img = cv2.imread('./sample/sample.jpg')
 
 # BGR -> グレースケール
 img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -10,7 +10,7 @@ retval, img_bw = cv2.threshold(img_gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THR
 cv2.imwrite('result1.png', img_bw)
 
 # 膨張処理
-kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
+kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (4, 4))
 img_bw = cv2.dilate(img_bw, kernel, iterations = 1)
 cv2.imwrite('result2.png', img_bw)
 
