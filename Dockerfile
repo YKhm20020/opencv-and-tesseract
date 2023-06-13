@@ -12,6 +12,8 @@ RUN ln -sf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime
 # apt
 RUN apt update
 RUN apt install -y libopencv-dev
+RUN apt install -y tesseract-ocr
+RUN apt install -y libtesseract-dev
 
 RUN apt-get update -y \
     && apt-get upgrade -y \
@@ -25,6 +27,7 @@ RUN apt-get install -y git
 RUN apt install -y python3 python3-pip
 RUN pip install --upgrade pip
 RUN pip install ipython
+RUN pip install pyocr
 
 # set working directory and copy files
 WORKDIR /usr/src/app
