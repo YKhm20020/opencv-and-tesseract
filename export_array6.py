@@ -36,7 +36,6 @@ for cnt, hrchy in zip(contours, hierarchy[0]):
     rect_points = cv2.boxPoints(rect).astype(int)
     rects.append(rect_points)
 
-
 # x-y 順でソート
 rects = sorted(rects, key=lambda x: (x[0][1], x[0][0]))
 

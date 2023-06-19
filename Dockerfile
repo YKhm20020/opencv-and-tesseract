@@ -6,7 +6,7 @@ ENV PYTHON_ROOT $HOME/local/python-$PYTHON_VERSION
 ENV PATH $PYTHON_ROOT/bin:$PATH
 ENV PYENV_ROOT $HOME/.pyenv
 
-# タイムゾーン
+# timezone
 RUN ln -sf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime
 
 # apt
@@ -26,8 +26,6 @@ RUN apt-get install -y git
 # install python and pip
 RUN apt install -y python3 python3-pip
 RUN pip install --upgrade pip
-RUN pip install ipython
-RUN pip install pyocr
 
 # set working directory and copy files
 WORKDIR /usr/src/app
@@ -35,3 +33,6 @@ COPY ./ /usr/src/app
 
 # install opencv
 RUN pip install opencv-python
+RUN pip install numpy
+RUN pip install pyocr
+RUN pip install Pillow
