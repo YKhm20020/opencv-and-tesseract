@@ -1,7 +1,7 @@
 # コマンド
 
-実行コマンド。python では bash: python: command not found のエラーが出る。
-python3 を pip install しているため。
+実行コマンド。python では bash: python: command not found のエラーが出る。  
+python3 を pip install しているため。  
 過去バージョンのものについては、old_version ディレクトリにまとめている。
 
 ```
@@ -178,7 +178,7 @@ img_bw = cv2.adaptiveThreshold(img_gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.TH
 
 cv2.adaptiveThreshold に変更。二値化には全画素を同じ閾値で変換する大域的二値化と、領域ごとに異なる閾値で変換する適応的二値化の 2 つの方法がある。  
 明るさが均一でない場合は、大域的二値化ではうまく二値化ができない場合がある。  
-この変更によって領域取得の精度は向上したものの、近傍サイズは適宜自分で決定していることが明確な改善点である。詳しくは 修正事項.3 を参照
+この変更によって領域取得の精度は向上したものの、近傍サイズは適宜自分で決定していることが明確な改善点である。詳しくは 修正事項.3 を参照。
 
 第一引数：入力画像（多次元配列）  
 第二引数：二値化後の輝度値  
@@ -377,7 +377,9 @@ cv2.imwrite('img.png', img)
 第一引数：保存先の画像ファイル名  
 第二引数：入力画像（多次元配列）
 
-# URL
+# 参考文献
+
+- [【Python】表の位置情報をOpenCVで検出する！](https://proglearn.com/2020/12/25/python%E8%A1%A8%E3%81%AE%E4%BD%8D%E7%BD%AE%E6%83%85%E5%A0%B1%E3%82%92opencv%E3%81%A7%E8%AA%AD%E3%81%BF%E5%8F%96%E3%82%8B%EF%BC%81/)
 
 - [OpenCV で使われる cvtcolor とは?cvtcolor の活用例を徹底紹介](https://kuroro.blog/python/7IFCPLA4DzV8nUTchKsb/)
 
