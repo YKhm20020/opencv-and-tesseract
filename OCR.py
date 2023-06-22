@@ -7,13 +7,13 @@ from PIL import Image
 import sys
 
 # インストール済みのTesseractへパスを通す
-TESSERACT_PATH = "/workspaces/OpenCV/Tesseract-OCR"
+TESSERACT_PATH = os.path.abspath('TESSERACT-OCR')
 if TESSERACT_PATH not in os.environ["PATH"].split(os.pathsep):
     os.environ["PATH"] += os.pathsep + TESSERACT_PATH
 
-TESSDATA_PATH = "/workspaces/OpenCV/Tesseract-OCR/tessdata"
+TESSDATA_PATH = os.path.join(TESSERACT_PATH, 'tessdata')
 os.environ["TESSDATA_PREFIX"] = TESSDATA_PATH
- 
+
 # 入力画像の指定
 inputImage = './sample/sample.jpg'
  
