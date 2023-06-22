@@ -12,21 +12,41 @@ $ python3 OCR.py
 1. 精度の向上  
 文字認識の精度向上は必須事項。正しい文字として認識できているか、座標が正しいかの2点で精度を向上させる必要あり。
 
+2. 歪みによる文字抽出の失敗  
+ある程度の歪みであれば、デジタルのフォームの画像そのままを入力としたものと同等の精度となるようにしたい。
+
+3. 属性付与  
+export_array と合わせて、矩形領域ごとに入力されるのが数値か、テキストか、日付かなどを決められるように組み合わせたい。
+
 # 各関数の詳細
 
 ## パスを通す
 
 ```
 # インストール済みのTesseractへパスを通す
-TESSERACT_PATH = "/workspaces/OpenCV/Tesseract-OCR"
-if TESSERACT_PATH not in os.environ["PATH"].split(os.pathsep):
-    os.environ["PATH"] += os.pathsep + TESSERACT_PATH
+TESSERACT_PATH = '/workspaces/OpenCV/Tesseract-OCR'
+if TESSERACT_PATH not in os.environ['PATH'].split(os.pathsep):
+    os.environ['PATH'] += os.pathsep + TESSERACT_PATH
 
-TESSDATA_PATH = "/workspaces/OpenCV/Tesseract-OCR/tessdata"
-os.environ["TESSDATA_PREFIX"] = TESSDATA_PATH
+TESSDATA_PATH = '/workspaces/OpenCV/Tesseract-OCR/tessdata'
+os.environ['TESSDATA_PREFIX'] = TESSDATA_PATH
 ```
 
 TesseractとTesseractの日本語パッケージにパスを通す。
+
+### 修正
+
+```
+# インストール済みのTesseractへパスを通す
+TESSERACT_PATH = os.path.abspath('TESSERACT-OCR')
+if TESSERACT_PATH not in os.environ['PATH'].split(os.pathsep):
+    os.environ['PATH'] += os.pathsep + TESSERACT_PATH
+
+TESSDATA_PATH = os.path.join(TESSERACT_PATH, 'tessdata')
+os.environ['TESSDATA_PREFIX'] = TESSDATA_PATH
+```
+
+研究室PCと所有PCでTesseractのパスが違っていたため、合わせていない方の環境では実行できなかった。そこで、TESSERACT-OCR という名前のディレクトリを探し、絶対パスを取得。取得したパスで tessdata のパスも通すというように修正した。
 
 ## OCRツールの取得と選択
 
@@ -38,7 +58,7 @@ for tool in tools:
     print(tool.get_name())
  
 if len(tools) == 0:
-    print("Do not find OCR tools")
+    print('Do not find OCR tools')
     sys.exit(1)
 
 tool = tools[0]
@@ -71,19 +91,48 @@ builder_list = pyocr.builders.WordBoxBuilder(tesseract_layout=6)
 builder_text = pyocr.builders.TextBuilder(tesseract_layout=6) 
 res = tool.image_to_string(
     img_bw,
-    lang="jpn",
+    lang='jpn',
     builder=builder_list,
 )
 res_txt = tool.image_to_string(
     img_bw,
-    lang="jpn",
+    lang='jpn',
     builder=builder_text,
 )
 ```
 2行目で配列から画像に変換している。これは、OpenCVにおける画像処理の段階では配列で様々な処理を施していたが、PyOCRでは配列での処理に対応しておらず、画像に変換する必要があるためである。  
-5行目と7~11行目は、単語単位でOCR処理を行う。  
-6行目と12~16行目は、テキスト全体でOCR処理を行う。  
-両者の違いは、OCR処理を行う基準である。どちらが適切にOCR処理できるかどうかは、現在検討中である。
+5行目と7~11行目は、単語単位でOCR処理を行い、文字の位置を検出する。  
+6行目と12~16行目は、テキスト全体でOCR処理を行い、テキストそのものを抽出する。  
+両者の違いは、OCR処理を行う基準である。
+
+- TextBuilder: 文字列を認識
+- WordBoxBuilder: 単語単位で文字認識 + BoundingBox
+- LineBoxBuilder: 行単位で文字認識 + BoundingBox
+- DigitBuilder: 数字・記号を認識
+- DigitLineBoxBuilder: 数字・記号を認識 + BoundingBox
+
+### 修正点
+```
+# OCR処理
+builder_list = pyocr.builders.LineBoxBuilder(tesseract_layout=11)
+builder_text = pyocr.builders.TextBuilder(tesseract_layout=11) 
+```
+pyocr.builders の builders を変更。バウンディングボックスを行単位で区切ることに。これにより、単語単位の認識だとバウンディングボックスが多数重なっていた問題をある程度解決。  
+また、tesseract_layout を 11 に変更。詳細は以下を参照。
+
+- 1 オリエンテーションとスクリプト検出(OSD)のみ。
+- 2 自動ページ分割、ただしOSD、またはOCRはなし。(未実装)
+- 3 完全自動ページ分割、ただしOSDなし。(未実装)
+- 4 サイズの異なるテキストが1列に並んでいると仮定。
+- 5 縦書きの一様なテキストブロックを想定。
+- 6 一様なテキストブロックを想定。
+- 7 画像を1つのテキスト行として扱う。
+- 8 画像を1つの単語として扱う。
+- 9 画像を円内の単一単語として扱う。
+- 10 画像を1つの文字として扱う。
+- 11 疎なテキスト。できるだけ多くのテキストを順不同に探す。
+- 12 OSDでテキストを疎にする。
+- 13 生の行。画像を1つのテキスト行として扱う。
 
 ## 認識内容を格納
 ```
@@ -98,7 +147,13 @@ for box in res:
 OpenCV利用のため、画像を配列として読み出し、その画像に対して以下の3つの操作を行う。
 1. なんの文字として認識したかを表示
 2. その文字がどこの位置かを表示
-3. 検知した箇所を赤枠で囲む
+3. 検知した箇所を赤枠で囲む  
+
+座標については、((左上x, 左上y), (右下x, 右下y)) という形で表示されている。  
+cv2.rectangle について、書式は以下のようになっている。
+```
+cv2.rectangle( 入力画像, 左上座標, 右上座標, 枠の色(BGR), 線の太さ(px) )
+```
 
 ## 格納した認識内容の表示
 ```

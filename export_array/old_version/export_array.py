@@ -5,7 +5,7 @@ import copy
 import json
 
 def convert_nparr_to_image(img):
-    ret, encoded = cv2.imencode(".jpg", img)
+    ret, encoded = cv2.imencode('.jpg', img)
     display(Image(encoded))
     
 def create_pos_data(contour):

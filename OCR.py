@@ -8,11 +8,11 @@ import sys
 
 # インストール済みのTesseractへパスを通す
 TESSERACT_PATH = os.path.abspath('TESSERACT-OCR')
-if TESSERACT_PATH not in os.environ["PATH"].split(os.pathsep):
-    os.environ["PATH"] += os.pathsep + TESSERACT_PATH
+if TESSERACT_PATH not in os.environ['PATH'].split(os.pathsep):
+    os.environ['PATH'] += os.pathsep + TESSERACT_PATH
 
 TESSDATA_PATH = os.path.join(TESSERACT_PATH, 'tessdata')
-os.environ["TESSDATA_PREFIX"] = TESSDATA_PATH
+os.environ['TESSDATA_PREFIX'] = TESSDATA_PATH
 
 # 入力画像の指定
 inputImage = './sample/sample.jpg'
@@ -24,7 +24,7 @@ for tool in tools:
     print(tool.get_name())
  
 if len(tools) == 0:
-    print("Do not find OCR tools")
+    print('Do not find OCR tools')
     sys.exit(1)
 
 tool = tools[0]
@@ -36,22 +36,21 @@ img = cv2.imread(inputImage)
 img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 img_gray = cv2.GaussianBlur(img_gray, (3, 3), 0)
 retval, img_bw = cv2.threshold(img_gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-cv2.imwrite('result1.png', img_bw)
 
 # 配列を画像に変換
 img_bw = Image.fromarray(img_bw)
 
 # OCR処理
-builder_list = pyocr.builders.WordBoxBuilder(tesseract_layout=6)
-builder_text = pyocr.builders.TextBuilder(tesseract_layout=6) 
+builder_list = pyocr.builders.LineBoxBuilder(tesseract_layout=11)
+builder_text = pyocr.builders.TextBuilder(tesseract_layout=11) 
 res = tool.image_to_string(
     img_bw,
-    lang="jpn",
+    lang='jpn',
     builder=builder_list,
 )
 res_txt = tool.image_to_string(
     img_bw,
-    lang="jpn",
+    lang='jpn',
     builder=builder_text,
 )
  
