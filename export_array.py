@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 
+# 入力画像の決定と読み取り
 inputImage = './sample/sample.jpg'
 
 img = cv2.imread(inputImage)
@@ -42,6 +43,11 @@ for cnt, hrchy in zip(contours, hierarchy[0]):
 # x-y 順でソート
 rects = sorted(rects, key=lambda x: (x[0][1], x[0][0]))
 
+min_x = min(rects[0][0][0], rects[1][0][0], rects[2][0][0], rects[3][0][0])
+max_x = max(rects[0][0][0], rects[1][0][0], rects[2][0][0], rects[3][0][0])
+min_y = min(rects[0][0][1], rects[1][0][1], rects[2][0][1], rects[3][0][1])
+max_y = max(rects[0][0][1], rects[1][0][1], rects[2][0][1], rects[3][0][1])
+
 # 描画する。
 for i, rect in enumerate(rects):
     color = np.random.randint(0, 255, 3).tolist()
@@ -49,5 +55,10 @@ for i, rect in enumerate(rects):
     cv2.putText(img, str(i), tuple(rect[0]), cv2.FONT_HERSHEY_SIMPLEX, 0.8, color, 2)
     
     print('rect(%d):\n' %i, rect)
+    
+print("min_x: %d" % min_x)
+print("max_x: %d" % max_x)
+print("min_y: %d" % min_y)
+print("max_y: %d" % max_y)
 
 cv2.imwrite('img.png', img)
