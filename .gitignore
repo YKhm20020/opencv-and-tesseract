@@ -1,6 +1,9 @@
-# 出力画像
+# 出力画像と、それらが格納されたディレクトリまるごと
 result1.png
 result2.png
 edges.png
 img.png
 img_OCR.png
+
+/cropped
+/results

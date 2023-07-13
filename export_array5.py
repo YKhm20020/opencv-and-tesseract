@@ -1,7 +1,8 @@
+import os
 import cv2
 import numpy as np
 
-# 頂点を左上、右上、右下、左下の順序に並び替える関数
+# 頂点を左上、左下、右下、右上の順序に並び替える関数
 def sort_points(points):
     # x座標とy座標の和が最小のものが左上
     tl = min(points, key=lambda x: x[0] + x[1])
@@ -11,11 +12,14 @@ def sort_points(points):
     br = max(points, key=lambda x: x[0] + x[1])
     # x座標とy座標の差が最大のものが左下
     bl = max(points, key=lambda x: x[0] - x[1])
-
     # 順序に従ってリストにする
     return [tl, tr, br, bl]
 
-# 入力画像の決定と読み取り
+# ディレクトリ作成、入力画像の決定と読み取り
+results_path = './results'
+if not os.path.exists(results_path):
+    os.mkdir(results_path)
+
 inputImage = './sample/sample.jpg'
 
 img = cv2.imread(inputImage)
@@ -24,12 +28,12 @@ img = cv2.imread(inputImage)
 img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 img_gray = cv2.GaussianBlur(img_gray, (3, 3), 0)
 retval, img_bw = cv2.threshold(img_gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
-cv2.imwrite('result1.png', img_bw)
+cv2.imwrite('result1.png', img_bw) # 確認用
 
 # 膨張処理
 kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (4, 4))
 img_bw = cv2.dilate(img_bw, kernel, iterations = 1)
-cv2.imwrite('result2.png', img_bw)
+cv2.imwrite('result2.png', img_bw) # 確認用
 
 # 輪郭抽出
 contours, hierarchy = cv2.findContours(img_bw, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
@@ -74,8 +78,7 @@ all_points = np.concatenate(rects)
 x_coords = all_points[:, 0]
 y_coords = all_points[:, 1]
 
-# x座標とy座標の最小値と最大値を求める
-# この後、画像のクリッピングに使う予定
+# 最小値と最大値を求める
 min_x = np.min(x_coords)
 max_x = np.max(x_coords)
 min_y = np.min(y_coords)
