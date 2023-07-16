@@ -110,6 +110,7 @@ img_OCR_paddle_color.png という名前の .png ファイルで画像を保存�
 # 参考文献
 - [PP-OCR: A Practical Ultra Lightweight OCR System (2020)（英語論文）](https://arxiv.org/abs/2009.09941)
 - [PP-OCRv2: Bag of Tricks for Ultra Lightweight OCR System (2021)（英語論文）](https://arxiv.org/abs/2109.03144)
+- [日本清華同方OCR技術のご紹介](http://www.tfsoftec.co.jp/dl/%E6%B8%85%E8%8F%AF%E5%90%8C%E6%96%B9_%E6%97%A5%E6%9C%AC%E8%AA%9EOCR%E6%8A%80%E8%A1%93%E7%B4%B9%E4%BB%8B%E8%B3%87%E6%96%99.pdf)
 - [PaddlePaddle/PaddleOCR（GitHubのREADME）](https://github.com/PaddlePaddle/PaddleOCR/blob/release/2.6/doc/doc_en/quickstart_en.md)
 - [paddleocr 2.6.1.3](https://pypi.org/project/paddleocr/)
 - [PaddleOCR: 最新の軽量OCRシステム](https://medium.com/axinc/paddleocr-%E6%9C%80%E6%96%B0%E3%81%AE%E8%BB%BD%E9%87%8Focr%E3%82%B7%E3%82%B9%E3%83%86%E3%83%A0-8744205f3703)
