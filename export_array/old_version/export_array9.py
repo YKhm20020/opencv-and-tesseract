@@ -15,9 +15,9 @@ def sort_points(points):
     return [tl, tr, br, bl]
 
 # 入力画像の決定と読み取り
-inputImage = './sample/sample.jpg'
+input_image = './sample/sample.jpg'
 
-img = cv2.imread(inputImage)
+img = cv2.imread(input_image)
 
 # BGR -> グレースケール
 img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)

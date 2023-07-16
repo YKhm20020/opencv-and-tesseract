@@ -36,3 +36,10 @@ RUN pip install opencv-python
 RUN pip install numpy
 RUN pip install pyocr
 RUN pip install Pillow
+
+# install PaddleOCR
+RUN apt remove -y python3-blinker
+RUN pip install paddleocr
+RUN python3 -m pip install paddlepaddle==2.4.1 -i https://pypi.tuna.tsinghua.edu.cn/simple
+RUN pip install pyinstaller
+RUN pip install loguru

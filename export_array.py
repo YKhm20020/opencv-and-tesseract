@@ -20,9 +20,9 @@ results_path = './results'
 if not os.path.exists(results_path):
     os.mkdir(results_path)
 
-inputImage = './sample/sample.jpg'
+input_image = './sample/sample.jpg'
 
-img = cv2.imread(inputImage)
+img = cv2.imread(input_image)
 
 # BGR -> グレースケール
 img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)

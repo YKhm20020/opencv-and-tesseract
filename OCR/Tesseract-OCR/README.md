@@ -70,7 +70,7 @@ tool = tools[0]
 
 ```
 # 画像から文字列を取得
-img = cv2.imread(inputImage)
+img = cv2.imread(input_image)
 
 # BGR -> グレースケール
 img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -137,7 +137,7 @@ pyocr.builders の builders を変更。バウンディングボックスを行�
 ## 認識内容を格納
 ```
 # 画像のどの部分を検出し、どう認識したかを分析
-out = cv2.imread(inputImage)
+out = cv2.imread(input_image)
  
 for box in res:
     print(box.content) #どの文字として認識したか
