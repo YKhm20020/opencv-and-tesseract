@@ -1,10 +1,8 @@
 from paddleocr import PaddleOCR
 import cv2
 
-# 入力画像の指定
-input_image = './sample/sample.jpg'
- 
-# 画像から文字列を取得
+# 入力画像の決定と読み取り
+input_image = './sample/sample3.png'
 img = cv2.imread(input_image)
 
 # 検出した文字とその位置を保存するリストを作成
@@ -41,12 +39,11 @@ for detection in result[0]:
     print(t_left + b_right) # どの位置を検出したか (左上x, 左上y, 右下x, 右下y) で出力される
     print(detection[1][1]) # 自信度（処理に必要なければ消す）
     cv2.rectangle(out, t_left, b_right, (0, 0, 255), 1) # 検出した箇所を赤枠で囲む
+    cv2.putText(out, str(len(text_list)), (t_left[0], t_left[1]-5), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
     
     # リストに文字と位置を追加
-    text_list.append(ocr_text) # 確認用。処理では使わない。
+    text_list.append(ocr_text)
     box_list.append(t_left + b_right) # 確認用。処理では使わない。
-
-print(ocr_text)
 
 # 検出結果の画像を表示
 cv2.imwrite('img_OCR_paddle.png', out)
@@ -55,4 +52,4 @@ cv2.imwrite('img_OCR_paddle.png', out)
 print() # 空白行
 print("検出した文字とその位置は以下の通りです。")
 for i in range(len(text_list)):
-    print("{}: {} {}".format(i+1, text_list[i], box_list[i]))
+    print("{}: {} {}".format(i, text_list[i], box_list[i]))
