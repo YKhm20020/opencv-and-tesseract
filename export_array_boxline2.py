@@ -1,7 +1,6 @@
 import os
 import cv2
 import numpy as np
-import math
 
 # 頂点を左上、左下、右下、右上の順序に並び替える関数
 def sort_points(points):
@@ -24,6 +23,7 @@ if not os.path.exists(results_path):
 input_image = './sample/sample2.jpg'
 
 img = cv2.imread(input_image)
+img2 = cv2.imread(input_image)
 
 # BGR -> グレースケール
 img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -76,75 +76,75 @@ for i, rect in enumerate(rects):
     
     print('rect(%d):\n' %i, rect_sorted)
 
+print()
+cv2.imwrite('img.png', img)
+
 rect_sorted_memory = np.array(rect_sorted_memory)
 
 # 重複していない水平線の座標を格納するリスト
 unique_horizontal_lines = []
 
-# 平行な横線のみ取り扱うため、ふるいにかける
 height, width, _ = img.shape
 min_length = width * 0.2
 
+# ハフ変換による直線検出
 lines = []
-lines = cv2.HoughLinesP(img_bw, rho=1, theta=np.pi/360, threshold=100, minLineLength=min_length, maxLineGap=1)
+lines = cv2.HoughLinesP(img_bw, rho=1, theta=np.pi/360, threshold=int(retval), minLineLength=min_length, maxLineGap=1)
 
 line_list = []
-error = 10 # 矩形の直線とみなす許容誤差
+error = 10 # 矩形の直線とみなす誤差
 if lines is not None:
     for line in lines:
         tl_x, tl_y, br_x, br_y = line[0]
-        is_overlapping = False
-        # 傾きを3px以内と判断
-        if abs(tl_y - br_y) < 1:
-            whiteline = 1
-            lineadd_img = cv2.line(img_bw, (line[0][0], line[0][1]), (line[0][2], line[0][3]), (255, 255, 255), whiteline)
+        # 傾き3px以内で検出対象に
+        if abs(tl_y - br_y) < 3:
             tl_x = line[0][0]
             tl_y = line[0][1]
             br_x = line[0][2]
             br_y = line[0][3]
             line = (tl_x, tl_y, br_x, br_y)
-            
             line_list.append(line)
-            line_nparray = np.array(line_list)
+            
+    line_list = sorted(line_list, key=lambda x: x[0])
+    line_nparray = np.array(line_list)
 
     for i, line in enumerate(line_nparray):
         for j in range(rect_sorted_memory.shape[0]):
-            if(rect_sorted_memory[j][0][0] <= line_nparray[i][0]
-               and (rect_sorted_memory[j][1][0] <= line_nparray[i][0])):
-                if(rect_sorted_memory[j][3][1] <= line_nparray[i][1]
-                and (rect_sorted_memory[j][2][0] <= line_nparray[i][1])):
-                    is_overlapping = True
+            is_underline = True
+    #         if(rect_sorted_memory[j][0][0] <= line_nparray[i][0] <= rect_sorted_memory[j][3][0]):
+    #            # and (rect_sorted_memory[j][1][0] <= line_nparray[i][0])):
+    #             if(rect_sorted_memory[j][2][1] <= line_nparray[i][1] <= rect_sorted_memory[j][3][1]):
+    #             # and (rect_sorted_memory[j][2][0] <= line_nparray[i][1])):
+    #                 is_underline = True
             
-            # # 水平線の両端のx座標が、矩形領域の左上と右上、または左下と右下のx座標の間にあるかどうかを確認する
-            # if ( (rect_sorted_memory[j][0][0] - error <= line_nparray[i][0] <= rect_sorted_memory[j][0][0] + error)
-            #     or (rect_sorted_memory[j][1][0] - error <= line_nparray[i][0] <= rect_sorted_memory[j][1][0] + error)
-            #     or (rect_sorted_memory[j][2][0] - error <= line_nparray[i][2] <= rect_sorted_memory[j][2][0] + error)
-            #     or (rect_sorted_memory[j][3][0] - error <= line_nparray[i][2] <= rect_sorted_memory[j][3][0] + error) ):
-            #     # 水平線の両端のy座標が、矩形領域の左上と左下、または右上と右下のy座標と同じかどうかを確認する
-            #     if ( (rect_sorted_memory[j][0][1] - error <= line_nparray[i][1] <= rect_sorted_memory[j][0][1] + error)
-            #         or (rect_sorted_memory[j][1][1] - error <= line_nparray[i][1] <= rect_sorted_memory[j][1][1] + error)
-            #         or (rect_sorted_memory[j][2][1] - error <= line_nparray[i][3] <= rect_sorted_memory[j][2][1] + error)
-            #         or (rect_sorted_memory[j][3][1] - error <= line_nparray[i][3] <= rect_sorted_memory[j][3][1] + error) ):
-            #         is_overlapping = True
-                
-            # 重複フラグがFalseであれば、水平線は重複していないと判断し、リストに追加する
-            if not is_overlapping:
-                unique_horizontal_lines += line_nparray.tolist()
-print(rect_sorted_memory[0][0])
-print(line_nparray[0])
-
-unique_horizontal_nparray = np.array(unique_horizontal_lines)
+            # 水平線の両端のx座標が、矩形領域の各頂点のx座標の間にあるかどうかを確認する
+            if ( (rect_sorted_memory[j][0][0] - error <= line_nparray[i][0] <= rect_sorted_memory[j][0][0] + error)
+                and (rect_sorted_memory[j][1][0] - error <= line_nparray[i][0] <= rect_sorted_memory[j][1][0] + error)
+                and (rect_sorted_memory[j][2][0] - error <= line_nparray[i][2] <= rect_sorted_memory[j][2][0] + error)
+                and (rect_sorted_memory[j][3][0] - error <= line_nparray[i][2] <= rect_sorted_memory[j][3][0] + error) ):
+                # 水平線の両端のy座標が、矩形領域の各頂点のy座標と同じかどうかを確認する
+                if ( (rect_sorted_memory[j][0][1] - error <= line_nparray[i][1] <= rect_sorted_memory[j][0][1] + error)
+                    and (rect_sorted_memory[j][1][1] - error <= line_nparray[i][1] <= rect_sorted_memory[j][1][1] + error)
+                    and (rect_sorted_memory[j][2][1] - error <= line_nparray[i][3] <= rect_sorted_memory[j][2][1] + error)
+                    and (rect_sorted_memory[j][3][1] - error <= line_nparray[i][3] <= rect_sorted_memory[j][3][1] + error) ):
+                    is_underline = False
+                    
+            # 重複フラグがTrueであれば、水平線は重複していないと判断し、リストに追加する
+            if not is_underline:
+                # if line_nparray[i][0] - error <= line_nparray[i+1][0] <= line_nparray[i][0] + error:
+                #     continue
+                unique_horizontal_lines = line_nparray.tolist()
+                unique_horizontal_nparray = np.append(unique_horizontal_lines, line_nparray, axis=0)
 
 # 矩形領域と重複しない水平線の座標を表示する
 for i, line in enumerate(unique_horizontal_lines):
     x1, y1, x2, y2 = unique_horizontal_lines[i]
-    # 線を描画する
-    cv2.line(img, (x1, y1), (x2, y2), (0, 255, 0), 1)
-    # 数字を描画する
-    cv2.putText(img, str(i), (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
+    cv2.line(img2, (x1, y1), (x2, y2), (0, 255, 0), 1)
+    cv2.putText(img2, str(i), (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 1)
+    
     print('line(%d):' %i, unique_horizontal_lines[i])
 
-    
+
 # # 全ての頂点を一次元配列にする
 # all_points = np.concatenate(rects)
 
@@ -163,4 +163,4 @@ for i, line in enumerate(unique_horizontal_lines):
 # print("min_y: %d" % min_y)
 # print("max_y: %d" % max_y)
 
-cv2.imwrite('img.png', img)
+cv2.imwrite('img2.png', img2)

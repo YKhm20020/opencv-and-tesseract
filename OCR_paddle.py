@@ -49,7 +49,6 @@ for detection in result[0]:
 cv2.imwrite('img_OCR_paddle.png', out)
 
 # 検出した文字とその位置をまとめて表示。以下確認用。
-print() # 空白行
-print("検出した文字とその位置は以下の通りです。")
+print()
 for i in range(len(text_list)):
     print("{}: {} {}".format(i, text_list[i], box_list[i]))

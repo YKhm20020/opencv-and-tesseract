@@ -20,7 +20,10 @@ $ python3 export_array.py
 ~~（sample_result3, 4 の 2 種の画像を参照）~~
 
 → 本格的に解決  
-cv2.THRESH_BINARY_INV によって解決。同時に、大津の二値化によって閾値の自動決定も可能に。
+cv2.THRESH_BINARY_INV によって解決。同時に、大津の二値化によって閾値の自動決定も可能に。  
+
+追記：
+原因は、エッジ検出にあった可能性がある。各矩形領域が集まっている場合、矩形の内側と、矩形の集合した外側でそれぞれ矩形を検出してしまっていた可能性が高い。原理は、boxline の水平線2本検出と同様。
 
 2. 領域取得の漏れ  
    特に面積の小さなもの（履歴書の学歴・職歴の月など）の取得が一部できていない場合がある。
@@ -403,3 +406,10 @@ cv2.imwrite('img.png', img)
 - [OpenCV – findContours で画像から輪郭を抽出する方法](https://pystyle.info/opencv-find-contours/#outline__4_1)
 
 - [OpenCV で使われる drawContours って?具体的な活用法を徹底解説!?](https://kuroro.blog/python/xaw33ckABzGLiHDFWC3m/)
+  
+  
+  
+以降、boxline（下線部検出）
+
+- [OpenCVで直線の検出](https://qiita.com/tifa2chan/items/d2b6c476d9f527785414#%E3%81%BE%E3%81%A8%E3%82%81)
+
