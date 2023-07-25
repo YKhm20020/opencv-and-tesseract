@@ -391,10 +391,6 @@ cv2.imwrite('img.png', img)
 
 - [OpenCV で使われる cvtcolor とは?cvtcolor の活用例を徹底紹介](https://kuroro.blog/python/7IFCPLA4DzV8nUTchKsb/)
 
-- [cv2.Canny(): Canny 法によるエッジ検出の調整をいい感じにする](https://qiita.com/Takarasawa_/items/1556bf8e0513dca34a19)
-
-- [cv2.Canny(): Canny 法によるエッジ検出の自動化](https://qiita.com/kotai2003/items/662c33c15915f2a8517e)
-
 - [OpenCV – 画像処理の 2 値化の仕組みと cv2.threshold() の使い方](https://pystyle.info/opencv-image-binarization/)
 
 - [OpenCV で使われる imwrite とは?imwrite の定義から使用例をご紹介](https://kuroro.blog/python/i0tNE1Mp8aEz8Z7n6Ggg/)
@@ -412,4 +408,8 @@ cv2.imwrite('img.png', img)
 以降、boxline（下線部検出）
 
 - [OpenCVで直線の検出](https://qiita.com/tifa2chan/items/d2b6c476d9f527785414#%E3%81%BE%E3%81%A8%E3%82%81)
+
+- [cv2.Canny(): Canny 法によるエッジ検出の調整をいい感じにする](https://qiita.com/Takarasawa_/items/1556bf8e0513dca34a19)
+
+- [cv2.Canny(): Canny 法によるエッジ検出の自動化](https://qiita.com/kotai2003/items/662c33c15915f2a8517e)
 
