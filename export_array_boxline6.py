@@ -45,7 +45,7 @@ med_val = np.median(img_bw)
 sigma = 0.33
 min_val = int(max(0, (1.0 - sigma) * med_val))
 max_val = int(max(255, (1.0 + sigma) * med_val))
-edges = cv2.Canny(img_bw, threshold1 = min_val, threshold2 = max_val+140)
+edges = cv2.Canny(img_bw, threshold1 = min_val, threshold2 = max_val)
 
 # 輪郭抽出
 contours, hierarchy = cv2.findContours(img_bw, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
@@ -77,7 +77,7 @@ rect_sorted_memory = []
 # 描画する。
 for i, rect in enumerate(rects):
     # 頂点を左上、左下、右下、右上の順序に並び替える
-    rect_sorted = np.array(sort_points(rects))
+    rect_sorted = np.array(sort_points(rect))
     
     rect_sorted_memory.append(rect_sorted)
     
@@ -119,29 +119,59 @@ if lines is not None:
             line_list.append(line)
             
     line_list = sorted(line_list, key=lambda x: x[0])
-    line_nparray = np.array(line_list)
+    
+    line_mean_list = []
+    # line_listから処理済みの要素を削除するためにコピーを作る
+    line_list_copy = line_list.copy()
+    
+    # line_list_copyが空になるまでループ
+    while line_list_copy:
+        # line_list_copyから最初の要素を取り出す
+        left_x1, left_y1, right_x1, right_y1 = line_list_copy.pop(0)
+        tmp_list = [(left_x1, left_y1, right_x1, right_y1)]
+        
+        # line_list_copyから他の要素を順番に取り出す
+        for left_x2, left_y2, right_x2, right_y2 in line_list_copy:
+            # エラーの範囲内であれば、一時保存リストに追加する
+            if abs(left_y1 - left_y2) <= error and abs(left_x1 - left_x2) <= error:
+                tmp_list.append((left_x2, left_y2, right_x2, right_y2))
+                
+        # 一時保存リストから各座標ごとに平均値を計算する
+        mean_left_x = np.mean([x[0] for x in tmp_list])
+        mean_left_y = np.mean([x[1] for x in tmp_list])
+        mean_right_x = np.mean([x[2] for x in tmp_list])
+        mean_right_y = np.mean([x[3] for x in tmp_list])
+        new_line = (int(mean_left_x), int(mean_left_y), int(mean_right_x), int(mean_right_y))
+        line_mean_list.append(new_line)
+        
+        # 一時保存リストに含まれる要素をline_list_copyから削除する
+        for line in tmp_list:
+            if line in line_list_copy:
+                line_list_copy.remove(line)
 
+    line_nparray = np.array(line_mean_list)
 
+    i = 0
     for i, line in enumerate(line_nparray):
+        j = 0
         for j in range(rect_sorted_memory.shape[0]):
             is_underline = True
+            line_mid_x = (line_nparray[i][0] + line_nparray[i][2]) / 2
+            line_mid_y = (line_nparray[i][1] + line_nparray[i][3]) / 2
             
             # 水平線の左端のx座標が、矩形領域の各辺の許容誤差内にあるかどうかを確認する
-            if ( ( (rect_sorted_memory[j][0][0] - error <= line_nparray[i][0] <= rect_sorted_memory[j][0][0] + error)
-                and (rect_sorted_memory[j][3][0] - error <= line_nparray[i][0] <= rect_sorted_memory[j][3][0] + error) )
-                or ( (rect_sorted_memory[j][1][0] - error <= line_nparray[i][0] <= rect_sorted_memory[j][1][0] + error)
-                and (rect_sorted_memory[j][2][0] - error <= line_nparray[i][0] <= rect_sorted_memory[j][2][0] + error) ) ):
-                is_underline = False
-                break
+            if ( ( (rect_sorted_memory[j][0][0] - error <= line_mid_x <= rect_sorted_memory[j][0][0] + error)
+                and (rect_sorted_memory[j][3][0] - error <= line_mid_x <= rect_sorted_memory[j][3][0] + error) )
+                or ( (rect_sorted_memory[j][1][0] - error <= line_mid_x <= rect_sorted_memory[j][1][0] + error)
+                and (rect_sorted_memory[j][2][0] - error <= line_mid_x <= rect_sorted_memory[j][2][0] + error) ) ):
                 
 
-            # 水平線の左端のy座標が、矩形領域の各辺の許容誤差内にあるかどうかを確認する
-            if ( ( (rect_sorted_memory[j][0][1] - error <= line_nparray[i][1] <= rect_sorted_memory[j][0][1] + error)
-                and (rect_sorted_memory[j][3][1] - error <= line_nparray[i][1] <= rect_sorted_memory[j][3][1] + error) )
-                or ( (rect_sorted_memory[j][1][1] - error <= line_nparray[i][1] <= rect_sorted_memory[j][1][1] + error)
-                and (rect_sorted_memory[j][2][1] - error <= line_nparray[i][1] <= rect_sorted_memory[j][2][1] + error) ) ):
-                is_underline = False
-                break
+                # 水平線の左端のy座標が、矩形領域の各辺の許容誤差内にあるかどうかを確認する
+                if ( ( (rect_sorted_memory[j][0][1] - error <= line_mid_y <= rect_sorted_memory[j][0][1] + error)
+                    and (rect_sorted_memory[j][3][1] - error <= line_mid_y <= rect_sorted_memory[j][3][1] + error) )
+                    or ( (rect_sorted_memory[j][1][1] - error <= line_mid_y <= rect_sorted_memory[j][1][1] + error)
+                    and (rect_sorted_memory[j][2][1] - error <= line_mid_y <= rect_sorted_memory[j][2][1] + error) ) ):
+                    is_underline = False
                     
             # 重複フラグがTrueであれば、水平線は重複していないと判断し、リストに追加する
             if is_underline:
@@ -151,8 +181,8 @@ if lines is not None:
 # 矩形領域と重複しない水平線の座標を表示する
 for i, line in enumerate(unique_horizontal_lines):
     x1, y1, x2, y2 = unique_horizontal_lines[i]
-    cv2.line(img2, (x1, y1), (x2, y2), (0, 255, 0), 1)
-    cv2.putText(img2, str(i), (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 1)
+    cv2.line(img2, (x1, y1), (x2, y2), (0, 255, 0), 2)
+    cv2.putText(img2, str(i), (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
 
     print('line(%d):' %i, unique_horizontal_lines[i])
 

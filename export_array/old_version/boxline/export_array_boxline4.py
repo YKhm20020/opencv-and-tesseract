@@ -77,7 +77,7 @@ rect_sorted_memory = []
 # 描画する。
 for i, rect in enumerate(rects):
     # 頂点を左上、左下、右下、右上の順序に並び替える
-    rect_sorted = np.array(sort_points(rects))
+    rect_sorted = np.array(sort_points(rect))
     
     rect_sorted_memory.append(rect_sorted)
     
@@ -119,29 +119,53 @@ if lines is not None:
             line_list.append(line)
             
     line_list = sorted(line_list, key=lambda x: x[0])
-    line_nparray = np.array(line_list)
+    
+    line_mean_list = []
+    while i < len(line_list):
+        left_x1, left_y1, right_x1, right_y1 = line_list[i]
+        left_x2, left_y2, right_x2, right_y2 = line_list[i+1]
+        
+        if abs(left_y1 - left_y2) <= error and abs(left_x1 - left_x1 <= error):
+            mean_left_x = np.mean([left_x1, left_x2])
+            mean_left_y = np.mean([left_y1, left_y2])
+            mean_right_x = np.mean([right_x1, right_x2])
+            mean_right_y = np.mean([right_y1, right_y2]) 
+            new_line = (int(mean_left_x), int(mean_left_y), int(mean_right_x), int(mean_right_y))
+            line_mean_list.append(new_line)
+            i += 2
+        else:
+            line_mean_list.append(line_list[i])
+            i += 1
+            
+        if i == len(line_list)-1:
+            line_mean_list.append(line_list[i])
+            break
+        
+    line_nparray = np.array(line_mean_list)
+    #line_nparray = np.array(line_list)
+    
+    print(line_nparray)
 
 
     for i, line in enumerate(line_nparray):
         for j in range(rect_sorted_memory.shape[0]):
             is_underline = True
+            line_mid_x = (line_nparray[i][0] + line_nparray[i][2]) / 2
+            line_mid_y = (line_nparray[i][1] + line_nparray[i][3]) / 2
             
             # 水平線の左端のx座標が、矩形領域の各辺の許容誤差内にあるかどうかを確認する
-            if ( ( (rect_sorted_memory[j][0][0] - error <= line_nparray[i][0] <= rect_sorted_memory[j][0][0] + error)
-                and (rect_sorted_memory[j][3][0] - error <= line_nparray[i][0] <= rect_sorted_memory[j][3][0] + error) )
-                or ( (rect_sorted_memory[j][1][0] - error <= line_nparray[i][0] <= rect_sorted_memory[j][1][0] + error)
-                and (rect_sorted_memory[j][2][0] - error <= line_nparray[i][0] <= rect_sorted_memory[j][2][0] + error) ) ):
-                is_underline = False
-                break
+            if ( ( (rect_sorted_memory[j][0][0] - error <= line_mid_x <= rect_sorted_memory[j][0][0] + error)
+                and (rect_sorted_memory[j][3][0] - error <= line_mid_x <= rect_sorted_memory[j][3][0] + error) )
+                or ( (rect_sorted_memory[j][1][0] - error <= line_mid_x <= rect_sorted_memory[j][1][0] + error)
+                and (rect_sorted_memory[j][2][0] - error <= line_mid_x <= rect_sorted_memory[j][2][0] + error) ) ):
                 
 
-            # 水平線の左端のy座標が、矩形領域の各辺の許容誤差内にあるかどうかを確認する
-            if ( ( (rect_sorted_memory[j][0][1] - error <= line_nparray[i][1] <= rect_sorted_memory[j][0][1] + error)
-                and (rect_sorted_memory[j][3][1] - error <= line_nparray[i][1] <= rect_sorted_memory[j][3][1] + error) )
-                or ( (rect_sorted_memory[j][1][1] - error <= line_nparray[i][1] <= rect_sorted_memory[j][1][1] + error)
-                and (rect_sorted_memory[j][2][1] - error <= line_nparray[i][1] <= rect_sorted_memory[j][2][1] + error) ) ):
-                is_underline = False
-                break
+                # 水平線の左端のy座標が、矩形領域の各辺の許容誤差内にあるかどうかを確認する
+                if ( ( (rect_sorted_memory[j][0][1] - error <= line_mid_y <= rect_sorted_memory[j][0][1] + error)
+                    and (rect_sorted_memory[j][3][1] - error <= line_mid_y <= rect_sorted_memory[j][3][1] + error) )
+                    or ( (rect_sorted_memory[j][1][1] - error <= line_mid_y <= rect_sorted_memory[j][1][1] + error)
+                    and (rect_sorted_memory[j][2][1] - error <= line_mid_y <= rect_sorted_memory[j][2][1] + error) ) ):
+                    is_underline = False
                     
             # 重複フラグがTrueであれば、水平線は重複していないと判断し、リストに追加する
             if is_underline:
