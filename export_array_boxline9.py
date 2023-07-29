@@ -46,6 +46,7 @@ sigma = 0.33
 min_val = int(max(0, (1.0 - sigma) * med_val))
 max_val = int(max(255, (1.0 + sigma) * med_val))
 edges = cv2.Canny(img_bw, threshold1 = min_val, threshold2 = max_val)
+cv2.imwrite('result3.png', edges) # 確認用
 
 # 輪郭抽出
 contours, hierarchy = cv2.findContours(img_bw, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
@@ -127,7 +128,7 @@ if lines is not None:
         left_x1, left_y1, right_x1, right_y1 = line_list_copy.pop(0)
         tmp_list = [(left_x1, left_y1, right_x1, right_y1)]
         
-        # line_list_copyから他の要素を順番に取り出す
+        # line_list_copy から他の要素を順番に取り出す
         for left_x2, left_y2, right_x2, right_y2 in line_list_copy:
             # エラーの範囲内であれば、一時保存リストに追加する
             if abs(left_y1 - left_y2) <= error and abs(left_x1 - left_x2) <= error:
@@ -148,8 +149,7 @@ if lines is not None:
 
     line_nparray = np.array(line_mean_list)
 
-    # 重複していない水平線の座標を格納するリスト
-    unique_horizontal_lines = []
+    # 重複する水平線のインデックスを保存するリスト
     overlap_index = []
     i = 0
     
@@ -160,34 +160,24 @@ if lines is not None:
             line_mid_x = (line_nparray[j][0] + line_nparray[j][2]) / 2
             line_mid_y = (line_nparray[j][1] + line_nparray[j][3]) / 2
             
-            # 条件が正しいことは確認済み。
             # 水平線の中点の座標を確認。矩形の上辺について、x座標は両端の間で、かつy座標が誤差範囲か
             if ( (rect_sorted_memory[i][0][0] - error <= line_mid_x <= rect_sorted_memory[i][3][0] + error)
                 and ( (rect_sorted_memory[i][0][1] - error <= line_mid_y <= rect_sorted_memory[i][0][1] + error)
                 or (rect_sorted_memory[i][3][1] - error <= line_mid_y <= rect_sorted_memory[i][3][1] + error) ) ):
-                is_underline = False
-                print(f'before: {line_nparray[j]}')
+                overlap_index.append(j)
 
             # 水平線の中点の座標を確認。矩形の下辺について、x座標は両端の間で、かつy座標が誤差範囲か
             if ( (rect_sorted_memory[i][1][0] - error <= line_mid_x <= rect_sorted_memory[i][2][0] + error)
                 and ( (rect_sorted_memory[i][1][1] - error <= line_mid_y <= rect_sorted_memory[i][1][1] + error)
                 or (rect_sorted_memory[i][2][1] - error <= line_mid_y <= rect_sorted_memory[i][2][1] + error) ) ):
-                is_underline = False
-                print(f'after: {line_nparray[j]}')
-                                    
-            # 重複フラグがTrueであれば、水平線は重複していないと判断し、リストに追加する
-            if is_underline:
-                #unique_horizontal_lines.append(line_nparray[i].tolist())
-                unique_horizontal_lines = line_nparray.tolist()
-                
-                #np.append(unique_horizontal_lines, line_nparray[i])
-                unique_horizontal_lines = np.delete(line_nparray, j, 0)
-                unique_horizontal_nparray = np.array(unique_horizontal_lines)    
-                #unique_horizontal_nparray = np.append(unique_horizontal_lines, line_nparray, axis=0)
+                overlap_index.append(j)
+    
+    # 重複する水平線のインデックスを参照し、ndarray 配列から削除               
+    unique_horizontal_nparray = np.delete(line_nparray, overlap_index, 0)
 
 # 矩形領域と重複しない水平線の座標を表示する
-i=0
-for i, line in enumerate(unique_horizontal_lines):
+i = 0
+for i, line in enumerate(unique_horizontal_nparray):
     x1, y1, x2, y2 = unique_horizontal_nparray[i]
     cv2.line(img2, (x1, y1), (x2, y2), (0, 255, 0), 2)
     cv2.putText(img2, str(i), (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
