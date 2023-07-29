@@ -1,6 +1,10 @@
 import os
+import sys
 import cv2
 import numpy as np
+# 以下、データ出力用
+import json # jsonファイル
+import csv
 
 # 頂点を左上、左下、右下、右上の順序に並び替える関数
 def sort_points(points):
@@ -17,10 +21,21 @@ def sort_points(points):
 
 # ディレクトリ作成、入力画像の決定と読み取り
 results_path = './results'
-if not os.path.exists(results_path):
-    os.mkdir(results_path)
+os.makedirs(results_path, exist_ok = True)
+    
+data_txt_path = './data/txt'
+os.makedirs(data_txt_path, exist_ok = True)
 
-input_image = './sample/sample4.jpg'
+data_json_path = './data/json'
+os.makedirs(data_json_path, exist_ok = True)
+
+data_npy_path = './data/npy'
+os.makedirs(data_npy_path, exist_ok = True)
+
+data_csv_path = './data/csv'
+os.makedirs(data_csv_path, exist_ok = True)
+
+input_image = './sample/sample2.jpg'
 
 img = cv2.imread(input_image)
 img2 = cv2.imread(input_image)
@@ -30,7 +45,7 @@ img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 img_gray = cv2.GaussianBlur(img_gray, (3, 3), 0)
 # TOZERO_BINARY で直線をひとつ多く検出したことを確認。他サンプルと比較必須。
 retval, img_bw = cv2.threshold(img_gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
-cv2.imwrite('result1.png', img_bw) # 確認用
+cv2.imwrite(f'{results_path}/result1.png', img_bw) # 確認用
 
 # 矩形領域と下線部検出で処理を分けるか検討。ガウシアンフィルタ適用の是非など。
 # img_gray_line = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -39,7 +54,7 @@ cv2.imwrite('result1.png', img_bw) # 確認用
 # 膨張処理
 kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (4, 4))
 img_bw = cv2.dilate(img_bw, kernel, iterations = 1)
-cv2.imwrite('result2.png', img_bw) # 確認用
+cv2.imwrite(f'{results_path}/result2.png', img_bw) # 確認用
 
 # Canny 法によるエッジ検出（下線部検出のみ）
 med_val = np.median(img_bw)
@@ -47,7 +62,7 @@ sigma = 0.33
 min_val = int(max(0, (1.0 - sigma) * med_val))
 max_val = int(max(255, (1.0 + sigma) * med_val))
 edges = cv2.Canny(img_bw, threshold1 = min_val, threshold2 = max_val)
-cv2.imwrite('result3.png', edges) # 確認用
+cv2.imwrite(f'{results_path}/result3.png', edges) # 確認用
 
 # 以下、矩形領域検出
 # 輪郭抽出
@@ -65,7 +80,7 @@ for cnt, hrchy in zip(contours, hierarchy[0]):
     rect = cv2.minAreaRect(cnt)
     (x, y), (w, h), angle = rect
     
-    # 縦横の線の長さを比較し、どちらがの線の長さが極端に短い場合は除外
+    # 縦横の線のうち、どちらがの線の長さが極端に短い場合は除外
     if min(w, h) < 10:
         continue
     
@@ -94,9 +109,25 @@ for i, rect in enumerate(rects):
 print()
 cv2.imwrite('img.png', img)
 
+rect_sorted_memory = np.array(rect_sorted_memory)
+rect_sorted_list = rect_sorted_memory.tolist()
+
+# .npy, .txt, .json, .csv ファイルで矩形領域の座標をエクスポート
+np.save(f'{data_npy_path}/rects_data', rect_sorted_memory)
+
+with open(f'{data_txt_path}/rects_data.txt', 'w') as f:
+    json.dump(rect_sorted_list, f)
+
+with open(f'{data_json_path}/rects_data.json', 'w') as f:
+    json.dump(rect_sorted_list, f)
+    
+with open(f'{data_csv_path}/rects_data.csv', 'w') as f:
+    writer = csv.writer(f)
+    writer.writerow(rect_sorted_list)
+
+
 
 # 以下は下線部認識
-rect_sorted_memory = np.array(rect_sorted_memory)
 
 height, width, _ = img.shape
 min_length = width * 0.1
@@ -106,8 +137,12 @@ lines = []
 lines = cv2.HoughLinesP(edges, rho=1, theta=np.pi/360, threshold=int(retval), minLineLength=min_length, maxLineGap=1)
 
 line_list = []
-error = 10 # 検知した直線を矩形の一部とみなす誤差
-if lines is not None:
+same_line_error = 10 # 上下に生成される直線を同一のものと捉える誤差
+
+if lines is None:
+    print('No straight lines detected')
+    sys.exit()
+else:
     for line in lines:
         tl_x, tl_y, br_x, br_y = line[0]
         # 傾き3px以内で検出対象に
@@ -122,7 +157,7 @@ if lines is not None:
     line_list = sorted(line_list, key=lambda x: x[0])
     
     line_mean_list = []
-    # line_listから処理済みの要素を削除するためにコピーを作る
+    # line_list から処理済みの要素を削除するためにコピーを作る
     line_list_copy = line_list.copy()
     
     # line_list_copy が空になるまでループ
@@ -133,8 +168,8 @@ if lines is not None:
         
         # line_list_copy から他の要素を順番に取り出す
         for left_x2, left_y2, right_x2, right_y2 in line_list_copy:
-            # エラーの範囲内であれば、一時保存リストに追加する
-            if abs(left_y1 - left_y2) <= error and abs(left_x1 - left_x2) <= error:
+            # 誤差の範囲内であれば、一時保存リストに追加する
+            if abs(left_y1 - left_y2) <= same_line_error and abs(left_x1 - left_x2) <= same_line_error:
                 tmp_list.append((left_x2, left_y2, right_x2, right_y2))
                 
         # 一時保存リストから各座標ごとに平均値を計算する
@@ -145,7 +180,7 @@ if lines is not None:
         new_line = (int(mean_left_x), int(mean_left_y), int(mean_right_x), int(mean_right_y))
         line_mean_list.append(new_line)
         
-        # 一時保存リストに含まれる要素をline_list_copyから削除する
+        # 一時保存リストに含まれる要素を line_list_copy から削除する
         for line in tmp_list:
             if line in line_list_copy:
                 line_list_copy.remove(line)
@@ -154,8 +189,9 @@ if lines is not None:
 
     # 重複する水平線のインデックスを保存するリスト
     overlap_index = []
-    i = 0
+    rect_error = 10 # 検知した直線を矩形の一部と捉える誤差
     
+    i = 0
     for i in range(rect_sorted_memory.shape[0]):
         j = 0
         for j, line in enumerate(line_nparray):
@@ -164,22 +200,19 @@ if lines is not None:
             line_mid_y = (line_nparray[j][1] + line_nparray[j][3]) / 2
             
             # 水平線の中点の座標を確認。矩形の上辺について、x座標は両端の間で、かつy座標が誤差範囲か
-            if ( (rect_sorted_memory[i][0][0] - error <= line_mid_x <= rect_sorted_memory[i][3][0] + error)
-                and ( (rect_sorted_memory[i][0][1] - error <= line_mid_y <= rect_sorted_memory[i][0][1] + error)
-                or (rect_sorted_memory[i][3][1] - error <= line_mid_y <= rect_sorted_memory[i][3][1] + error) ) ):
+            if ( (rect_sorted_memory[i][0][0] - rect_error <= line_mid_x <= rect_sorted_memory[i][3][0] + rect_error)
+                and ( (rect_sorted_memory[i][0][1] - rect_error <= line_mid_y <= rect_sorted_memory[i][0][1] + rect_error)
+                or (rect_sorted_memory[i][3][1] - rect_error <= line_mid_y <= rect_sorted_memory[i][3][1] + rect_error) ) ):
                 overlap_index.append(j)
 
             # 水平線の中点の座標を確認。矩形の下辺について、x座標は両端の間で、かつy座標が誤差範囲か
-            if ( (rect_sorted_memory[i][1][0] - error <= line_mid_x <= rect_sorted_memory[i][2][0] + error)
-                and ( (rect_sorted_memory[i][1][1] - error <= line_mid_y <= rect_sorted_memory[i][1][1] + error)
-                or (rect_sorted_memory[i][2][1] - error <= line_mid_y <= rect_sorted_memory[i][2][1] + error) ) ):
+            if ( (rect_sorted_memory[i][1][0] - rect_error <= line_mid_x <= rect_sorted_memory[i][2][0] + rect_error)
+                and ( (rect_sorted_memory[i][1][1] - rect_error <= line_mid_y <= rect_sorted_memory[i][1][1] + rect_error)
+                or (rect_sorted_memory[i][2][1] - rect_error <= line_mid_y <= rect_sorted_memory[i][2][1] + rect_error) ) ):
                 overlap_index.append(j)
     
     # 重複する水平線のインデックスを参照し、ndarray 配列から削除               
     unique_horizontal_nparray = np.delete(line_nparray, overlap_index, 0)
-
-else:
-    print('No straight lines detected')
 
 # 矩形領域と重複しない水平線の座標を表示する
 i = 0
@@ -213,3 +246,18 @@ else:
     # print("max_y: %d" % max_y)
 
     cv2.imwrite('img2.png', img2)
+    
+    unique_horizontal_list = unique_horizontal_nparray.tolist()
+    
+    # .npy, .txt, .json, .csv ファイルで下線の座標をエクスポート
+    np.save(f'{data_npy_path}/underlines_data', unique_horizontal_nparray)
+
+    with open(f'{data_txt_path}/underlines_data.txt', 'w') as f:
+        json.dump(unique_horizontal_list, f)
+
+    with open(f'{data_json_path}/underlines_data.json', 'w') as f:
+        json.dump(unique_horizontal_list, f)
+        
+    with open(f'{data_csv_path}/underlines_data.csv', 'w') as f:
+        writer = csv.writer(f)
+        writer.writerow(unique_horizontal_list)
