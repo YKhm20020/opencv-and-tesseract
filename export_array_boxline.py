@@ -3,7 +3,7 @@ import sys
 import cv2
 import numpy as np
 # 以下、データ出力用
-import json # jsonファイル
+import json
 import csv
 
 # 頂点を左上、左下、右下、右上の順序に並び替える関数
@@ -20,22 +20,23 @@ def sort_points(points):
     return [tl, tr, br, bl]
 
 # ディレクトリ作成、入力画像の決定と読み取り
-results_path = './results'
+dir = ['./results', './data/txt', './data/json', './data/npy', './data/csv']
+results_path, data_txt_path, data_json_path, data_npy_path, data_csv_path = dir
+
 os.makedirs(results_path, exist_ok = True)
-    
-data_txt_path = './data/txt'
 os.makedirs(data_txt_path, exist_ok = True)
-
-data_json_path = './data/json'
 os.makedirs(data_json_path, exist_ok = True)
-
-data_npy_path = './data/npy'
 os.makedirs(data_npy_path, exist_ok = True)
-
-data_csv_path = './data/csv'
 os.makedirs(data_csv_path, exist_ok = True)
 
-input_image = './sample/sample2.jpg'
+input_image = './sample/sample4.jpg'
+#input_image = './sample/P/02稟議書_/A281新卒者採用稟議書.png'
+#input_image = './sample/P/02稟議書_/A282広告出稿稟議書.png'
+#input_image = './sample/P/02稟議書_/A321稟議書.png'
+#input_image = './sample/P/02稟議書_/A438安全衛生推進者選任稟議書.png'
+#input_image = './sample/P/02稟議書_/A481広告出稿稟議書.png'
+#input_image = './sample/P/18作業報告書_/B090入庫報告書.png'
+#input_image = './sample/P/26休暇届_/A089夏季休暇届.png'
 
 img = cv2.imread(input_image)
 img2 = cv2.imread(input_image)
@@ -43,9 +44,12 @@ img2 = cv2.imread(input_image)
 # BGR -> グレースケール
 img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 img_gray = cv2.GaussianBlur(img_gray, (3, 3), 0)
-# TOZERO_BINARY で直線をひとつ多く検出したことを確認。他サンプルと比較必須。
-retval, img_bw = cv2.threshold(img_gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
-cv2.imwrite(f'{results_path}/result1.png', img_bw) # 確認用
+
+# 第四引数が cv2.THRESH_TOZERO_INV で直線をひとつ多く検出したことを確認。他サンプルと比較必須。
+#retval, img_bw = cv2.threshold(img_gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+retval, img_bw = cv2.threshold(img_gray, 0, 255, cv2.THRESH_TOZERO_INV + cv2.THRESH_OTSU)
+
+cv2.imwrite(f'{results_path}/result1_gray.png', img_bw) # 確認用
 
 # 矩形領域と下線部検出で処理を分けるか検討。ガウシアンフィルタ適用の是非など。
 # img_gray_line = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -54,7 +58,7 @@ cv2.imwrite(f'{results_path}/result1.png', img_bw) # 確認用
 # 膨張処理
 kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (4, 4))
 img_bw = cv2.dilate(img_bw, kernel, iterations = 1)
-cv2.imwrite(f'{results_path}/result2.png', img_bw) # 確認用
+cv2.imwrite(f'{results_path}/result2_bw.png', img_bw) # 確認用
 
 # Canny 法によるエッジ検出（下線部検出のみ）
 med_val = np.median(img_bw)
@@ -62,7 +66,7 @@ sigma = 0.33
 min_val = int(max(0, (1.0 - sigma) * med_val))
 max_val = int(max(255, (1.0 + sigma) * med_val))
 edges = cv2.Canny(img_bw, threshold1 = min_val, threshold2 = max_val)
-cv2.imwrite(f'{results_path}/result3.png', edges) # 確認用
+cv2.imwrite(f'{results_path}/result3_edges.png', edges) # 確認用
 
 # 以下、矩形領域検出
 # 輪郭抽出
@@ -93,7 +97,6 @@ rects = sorted(rects, key=lambda x: (x[0][1], x[0][0]))
 rect_sorted_memory = []
 
 # 描画する。
-i = 0
 for i, rect in enumerate(rects):
     # 頂点を左上、左下、右下、右上の順序に並び替える
     rect_sorted = np.array(sort_points(rect))

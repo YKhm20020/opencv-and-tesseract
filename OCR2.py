@@ -78,7 +78,7 @@ res_txt = res_txt.replace(' ', '')
 res_txt = res_txt.replace('\n\n', '\n') # 余分な改行を削除
 lines = res_txt.split('\n') # 改行で分割
 for i, line in enumerate(lines):
-    print(f'{res[i].position}: {line}') # 座標と文字列を出力
+    print(f'chars[{i}] {res[i].position} : {line}') # 座標と文字列を出力
  
 # 検出結果の画像を表示
 cv2.imwrite('img_OCR.png', out)

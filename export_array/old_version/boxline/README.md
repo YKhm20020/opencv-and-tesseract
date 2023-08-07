@@ -11,7 +11,8 @@ $ python3 export_array_boxline6.py
 # 修正事項
 
 - 矩形領域との重複認識
-先述の通り、矩形領域の辺を水平線として認識しないよう、例外処理を加える必要がある。現在調整中。
+~~先述の通り、矩形領域の辺を水平線として認識しないよう、例外処理を加える必要がある。現在調整中。~~
+→ export_array_boxline7.py (8月7日現在における最新バージョンなので、root ディレクトリの export_array_boxline のこと)で解決。検出した水平線の中点のx, y座標を矩形領域の頂点のx, y座標と比較する。許容誤差内であれば矩形領域の上下辺とみなし、リストから除外することで問題を解決。
 
 - エッジ検出を行った場合の2本の重複認識
 ~~export_array_boxline3.py では、前処理としてエッジ検出を施している。このファイルを実行して生成される img2.png を見ると、水平線の上下にそれぞれ水平線が検出されており、最低2本の水平線が一本の線から検出される。本数は、先述の矩形領域との重複でさらに多くなることもある。~~  
@@ -19,15 +20,12 @@ $ python3 export_array_boxline6.py
 
 # 解決策
 
-- 条件分岐の見直し
+- [x]条件分岐の見直し
 見通しが立たないが、条件を見直すことは必須。一部の検出は除外できているため、できているものとできていないものを洗い出すとよいかもしれない。
 
-- 矩形領域の線を白でぬり、元画像を更新して直線検出
-展望はあるが、プログラムの大幅な改修が必要となる可能性がある。矩形領域を検出した後に、その線を白で塗りつぶした画像に対して直線検出を行う。これによって、本来検出されるはずの矩形の水平線が消える。  
-検出する線を減らす方針の逆であり、検出対象の矩形の線を消す方針。
-
-- 2本の水平線のy座標を平均する
+- [x]2本の水平線のy座標を平均する
 エッジ検出の上下に線1本につき2本の水平線が検出される問題については、それぞれの水平線の両端のy座標を平均し、更新するとよいと思われる。これによって、水平線2本の間にy座標が更新される。
+
 
 # 各関数の詳細
 
@@ -44,7 +42,7 @@ max_val = int(max(255, (1.0 + sigma) * med_val))
 edges = cv2.Canny(img_bw, threshold1 = min_val, threshold2 = max_val)
 ```
 
-エッジ検出。後述するハフ変換のため。  
+エッジ検出。後述するハフ変換のため。矩形領域機能にエッジ検出を施すと、最小外接矩形が認識されてしまうため、下線部認識のみで行う前処理である。  
 今回は、二値画像の img_bw に対して、NumPy の np.median を使用することで、要素の中央値を求めている。これによって、本来2つの閾値を人が決定しなければならないところを、自動化している。  
 
 参考：[cv2.Canny(): Canny 法によるエッジ検出の自動化](https://qiita.com/kotai2003/items/662c33c15915f2a8517e)
@@ -79,28 +77,25 @@ img.shape で入力画像の高さと幅を求め、検知する直線の最低�
 ## 水平線のみの検出に限定する
 
 ```
-line_list = []
-error = 10 # 矩形の直線とみなす誤差
-if lines is not None:
+if lines is None:
+    print('No straight lines detected')
+    sys.exit()
+else:
     for line in lines:
         tl_x, tl_y, br_x, br_y = line[0]
         # 傾き3px以内で検出対象に
         if abs(tl_y - br_y) < 3:
-            tl_x = line[0][0]
-            tl_y = line[0][1]
-            br_x = line[0][2]
-            br_y = line[0][3]
-            line = (tl_x, tl_y, br_x, br_y)
-            line_list.append(line)
+            line_list.append((tl_x, tl_y, br_x, br_y))
             
     line_list = sorted(line_list, key=lambda x: x[0])
 ```
 
 新たに line_list という空のリストを用意し、横の直線のみに限定して各座標の値を代入する。 　
 line に代入した直線の座標のうち、左端のy座標と右端のy座標の差の絶対値をとることで、線の傾きを求める。今回は、この値が3px以下であるもののみ検出することとしている。  
-最後に、line_list に代入された値を、左端のx座標を基準にリストごとソートする。このとき、line_list リストには水平線の数だけリストが代入されている状態。
+最後に、line_list に代入された値を、左端のx座標を基準にリストごとソートする。このとき、line_list リストには水平線の数だけリストが代入されている状態。  
+線を検知しなかった場合は、その旨のメッセージを表示して終了する。
 
-## 2本の線の座標を平均し、別のリストに代入
+## 上下2本の線の座標を平均し、別のリストに代入
 
 ```
 line_mean_list = []
@@ -128,10 +123,7 @@ line list をコピーしたリスト line_list_copy から最初の要素をポ
 
 ```
         # 一時保存リストから平均値を計算する
-        mean_left_x = np.mean([x[0] for x in tmp_list])
-        mean_left_y = np.mean([x[1] for x in tmp_list])
-        mean_right_x = np.mean([x[2] for x in tmp_list])
-        mean_right_y = np.mean([x[3] for x in tmp_list])
+        mean_left_x, mean_left_y, mean_right_x, mean_right_y = [np.mean([x[i] for x in tmp_list]) for i in range(4)]
         new_line = (int(mean_left_x), int(mean_left_y), int(mean_right_x), int(mean_right_y))
         line_mean_list.append(new_line)
         
@@ -177,6 +169,34 @@ line_list_copy に tmp_list の要素が含まれている場合、line_list_cop
 ```
 
 要修正ポイント。現在は、水平線の中点の座標が矩形領域上にある場合、除外するという操作を行う予定である。
+
+### 修正後 (export_array_boxline7.py)
+
+```
+    for i in range(rect_sorted_memory.shape[0]):
+        for j, line in enumerate(line_nparray):
+            is_underline = True
+            line_mid_x = (line_nparray[j][0] + line_nparray[j][2]) / 2
+            line_mid_y = (line_nparray[j][1] + line_nparray[j][3]) / 2
+            
+            # 水平線の中点の座標を確認。矩形の上辺について、x座標は両端の間で、かつy座標が誤差範囲か
+            if ( (rect_sorted_memory[i][0][0] - rect_error <= line_mid_x <= rect_sorted_memory[i][3][0] + rect_error)
+                and ( (rect_sorted_memory[i][0][1] - rect_error <= line_mid_y <= rect_sorted_memory[i][0][1] + rect_error)
+                or (rect_sorted_memory[i][3][1] - rect_error <= line_mid_y <= rect_sorted_memory[i][3][1] + rect_error) ) ):
+                overlap_index.append(j)
+
+            # 水平線の中点の座標を確認。矩形の下辺について、x座標は両端の間で、かつy座標が誤差範囲か
+            if ( (rect_sorted_memory[i][1][0] - rect_error <= line_mid_x <= rect_sorted_memory[i][2][0] + rect_error)
+                and ( (rect_sorted_memory[i][1][1] - rect_error <= line_mid_y <= rect_sorted_memory[i][1][1] + rect_error)
+                or (rect_sorted_memory[i][2][1] - rect_error <= line_mid_y <= rect_sorted_memory[i][2][1] + rect_error) ) ):
+                overlap_index.append(j)
+    
+    # 重複する水平線のインデックスを参照し、ndarray 配列から削除               
+    unique_horizontal_nparray = np.delete(line_nparray, overlap_index, 0)
+```
+
+この修正により、矩形領域の上下辺を水平線として検知しなくなった。  
+水平線の中点のx, y座標を計算し、矩形領域の各頂点のx, y座標を参照。矩形領域の辺とみなす誤差 rect_error を考慮し、範囲内であれば検知した水平線のリストから除外する。  
 
 ## 水平線の描画と各座標の出力
 ```
