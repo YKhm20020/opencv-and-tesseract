@@ -1,2 +1,2 @@
-Tesseract-OCR/* linguist-vendored
-fastText/* linguist-vendored
+Tesseract-OCR/* linguist-vendored=true
+fastText/* linguist-vendored=true
