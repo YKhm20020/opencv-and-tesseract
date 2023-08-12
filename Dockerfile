@@ -48,3 +48,4 @@ RUN pip install loguru
 # install MeCab and dic
 RUN pip install mecab-python3
 ENV MECABRC ./MeCab/etc/mecabrc
+RUN pip install unidic-lite
