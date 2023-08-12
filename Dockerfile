@@ -26,6 +26,7 @@ RUN apt-get install -y git
 # install python and pip
 RUN apt install -y python3 python3-pip
 RUN pip install --upgrade pip
+RUN python3 -m pip install --upgrade pip setuptools
 
 # set working directory and copy files
 WORKDIR /usr/src/app
@@ -43,3 +44,7 @@ RUN pip install paddleocr
 RUN python3 -m pip install paddlepaddle==2.4.1 -i https://pypi.tuna.tsinghua.edu.cn/simple
 RUN pip install pyinstaller
 RUN pip install loguru
+
+# install MeCab and dic
+RUN pip install mecab-python3
+ENV MECABRC ./MeCab/etc/mecabrc
