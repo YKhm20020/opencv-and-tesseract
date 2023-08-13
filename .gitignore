@@ -16,3 +16,9 @@ img_OCR_paddle_color.png
 /sample/P
 
 /__pycache__
+
+# 学習モデルと訓練データ、テストデータ、分かち書き後のデータ
+photolize.bin
+test_fasttext.txt
+train_fasttext.txt
+*.tsv
