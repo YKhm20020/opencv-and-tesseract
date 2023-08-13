@@ -45,7 +45,10 @@ RUN python3 -m pip install paddlepaddle==2.4.1 -i https://pypi.tuna.tsinghua.edu
 RUN pip install pyinstaller
 RUN pip install loguru
 
-# install MeCab and dic
+# install MeCab, unidic-lite,. fastText and scikit-learn
 RUN pip install mecab-python3
 ENV MECABRC ./MeCab/etc/mecabrc
 RUN pip install unidic-lite
+RUN pip install git+https://github.com/facebookresearch/fastText.git@v0.9.2
+RUN pip install fasttext
+RUN pip install scikit-learn

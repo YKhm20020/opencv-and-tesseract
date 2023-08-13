@@ -1,0 +1,375 @@
+__label__num 治療 費 
+__label__num 午前 
+__label__char 時刻 表 
+__label__char 効能 効果 
+__label__boolean 無 許可 
+__label__char アンケート 
+__label__char 副 作用 
+__label__char 弁護 人 
+__label__check ご 報告 区分 
+__label__char 要望 
+__label__char ご 入力 ください 
+__label__boolean 達成 
+__label__num 人 
+__label__num 点 
+__label__num キロメートル 
+__label__date 製造 年 月 
+__label__num 歳 
+__label__boolean 有無 
+__label__char 遺言 書 
+__label__date 受付 日 
+__label__char 詳細 
+__label__char 場所 
+__label__char ご 記入 ください 
+__label__char 用法 
+__label__date 提出 日 
+__label__char 病名 
+__label__date 締め切り 
+__label__char 御中 
+__label__char お なまえ 
+__label__num JAN コード 
+__label__date 開催 日 
+__label__char 保育 園 
+__label__num 単価 
+__label__char 銀行 
+__label__date ご 報告 内容 発生 予定 日 
+__label__num ミリメートル 
+__label__date 希望 日時 
+__label__char 明細 表 
+__label__date 誕生 日 
+__label__char 要素 
+__label__check 軽減 税 率 
+__label__num 長 さ 
+__label__char 許可 証 
+__label__char 電話 
+__label__num kg 
+__label__char 所見 
+__label__char 件名 
+__label__char 掲載 雑誌 
+__label__boolean 肯定 
+__label__boolean 不 採用 
+__label__char 型番 
+__label__boolean 無 
+__label__char 苗字 
+__label__char ユーザー 名 
+__label__char 納品 場所 
+__label__check 個人 情報 保護 方針 へ の 同意 
+__label__char 資格 
+__label__char 引き落とし 口座 
+__label__num 施工 費 
+__label__char 幹線 道路 名 
+__label__num 距離 
+__label__char 相談 
+__label__char 本文 
+__label__boolean 希望 する 
+__label__char 相互 作用 
+__label__num 部屋 番号 
+__label__char メニュー 
+__label__num 合計 
+__label__char シリアル 番号 
+__label__char 駅 
+__label__char 所属 
+__label__num 小計 
+__label__date 引き落とし 日 
+__label__num 基準 番号 
+__label__char 誓約 書 
+__label__num 市 区 町 村 コード 
+__label__char メール 
+__label__char 宿泊 先 
+__label__char 事業 所 名称 
+__label__char 学籍 番号 
+__label__char 薬剤 料 
+__label__num 高 さ 
+__label__char 乗り場 
+__label__char 患者 番号 
+__label__num レセ 電算 コード 
+__label__num 入院 費 
+__label__char 学部 
+__label__char 項目 名 
+__label__char 教え て ください 
+__label__date 請求 日 
+__label__num HOT コード 
+__label__char 医療 機関 
+__label__check 複数 選択 可 
+__label__date 有効 期限 
+__label__num 消費 税 
+__label__char 処方 医 
+__label__num 養育 費 
+__label__char メール アドレス 
+__label__char タイトル 
+__label__char 施工 計画 書 
+__label__char 教科 
+__label__num 預入 額 
+__label__char 契約 書 
+__label__char お 答え ください 
+__label__num 残高 
+__label__char アドレス 
+__label__num 税 率 
+__label__char 相手 科目 
+__label__boolean 否定 
+__label__num 口座 番号 
+__label__char マンション 名 
+__label__char 品番 
+__label__boolean 未 達成 
+__label__num 学費 
+__label__boolean 不 得意 
+__label__char 病状 
+__label__char 食堂 
+__label__char 名称 
+__label__char 主旨 
+__label__num 登録 番号 
+__label__num 日 
+__label__boolean 不要 
+__label__char 路線 図 
+__label__num 年 
+__label__num 経験 年数 
+__label__num ㎢ 
+__label__num 時速 
+__label__num 枚数 
+__label__char 免許 証 
+__label__char 電話 番号 
+__label__char カルテ 
+__label__boolean 得意 
+__label__radio お 問い合わせ の 種類 
+__label__check ご 希望 の サービス 
+__label__char メッセージ 
+__label__char 支払い 口座 
+__label__num 額 
+__label__check 同意 する 
+__label__char 保険 者 名称 
+__label__num 個 
+__label__char 質問 
+__label__char 世帯 主 
+__label__char 外用 
+__label__num km 
+__label__num 保険 者 番号 
+__label__radio ご 希望 の プラン 
+__label__num 時間 
+__label__char 職種 
+__label__date 発注 日 
+__label__char 宛先 
+__label__char 配属 先 
+__label__radio 同意 いたし ます 
+__label__num 回 
+__label__char 地下 
+__label__boolean はい 
+__label__char 非 保険 者 氏名 
+__label__check 参加 可能 な 時間 帯 を すべて お 選び ください 
+__label__date 発行 日 
+__label__date 認定 年 月 日 
+__label__char 契約 者 名 
+__label__char 略称 
+__label__num 英数字 
+__label__char 契約 プラン 
+__label__char 品名 
+__label__num 薬効 分類 番号 
+__label__char 会員 規約 
+__label__num 代金 
+__label__char 税 率 別 内訳 
+__label__char 品目 
+__label__char 単位 
+__label__char 教室 
+__label__char 高校 
+__label__char 建物 名 
+__label__char 社員 ID 
+__label__char URL 
+__label__char 担当 
+__label__char 旅行 先 
+__label__num mm 
+__label__date ご 予約 日 
+__label__char 氏名 
+__label__char お 名前 
+__label__num 補填 金 
+__label__num 税込 
+__label__char フォーム 
+__label__char 博物 館 
+__label__boolean 参加 
+__label__num 円 
+__label__char 自己 PR 
+__label__boolean 要 
+__label__num g 
+__label__char 原因 
+__label__char 会社 名 
+__label__date 納期 
+__label__char 売り場 
+__label__check 気 に なる 項目 
+__label__char メイ 
+__label__char 駅名 
+__label__num キロ 
+__label__drop 都 道 府 県 
+__label__boolean 是非 
+__label__num 税抜 
+__label__num 地方 公共 団体 コード 
+__label__num 全国 地方 公共 団体 コード 
+__label__date 請求 年 月 
+__label__char 背景 
+__label__num 金額 
+__label__char 備考 
+__label__num レセプト 電算 処理 システム 用 コード 
+__label__char 文字 列 
+__label__char 特技 
+__label__boolean 効率 的 
+__label__boolean 苦手 
+__label__char 内容 
+__label__char 小学 
+__label__date 希望 日 
+__label__char 対応 表 
+__label__char 趣味 
+__label__char セイ 
+__label__char 大学 
+__label__date 署名 年 月 日 
+__label__char 内訳 
+__label__num 損害 保険 料 
+__label__char 医師 
+__label__char 成分 
+__label__num mg 
+__label__char 住所 
+__label__char スケジュール 
+__label__boolean 採用 
+__label__char 時間 
+__label__char 分野 
+__label__boolean ない 
+__label__char 宛名 
+__label__boolean はいる 
+__label__num グラム 
+__label__char 事由 
+__label__char 訪問 先 
+__label__date 申込 日 
+__label__char 商品 コード 
+__label__num 分速 
+__label__char 自由 記述 
+__label__num 分 
+__label__radio ご 希望 の 時間 帯 
+__label__num 点目 
+__label__num 杯 
+__label__char 志望 動機 
+__label__num 枚 
+__label__char 会員 番号 
+__label__char 注意 
+__label__char 事項 
+__label__char 美術 館 
+__label__num 費用 
+__label__char 名前 
+__label__num 秒数 
+__label__char 事業 所 
+__label__num 賠償 金 
+__label__char 丁目 以下 
+__label__date 日付 
+__label__num 年齢 
+__label__date 決済 日 
+__label__char 携帯 電話 番号 
+__label__char 題名 
+__label__num 平方 キロメートル 
+__label__char 概要 
+__label__char 勤務 先 
+__label__check 複数 可 
+__label__char ふりがな 
+__label__char 乙 
+__label__num 面積 
+__label__boolean 未 加入 
+__label__num ㎡ 
+__label__boolean 欠席 
+__label__char 履歴 書 
+__label__num cm 
+__label__char 続柄 
+__label__num 名 
+__label__char 被告 人 
+__label__char 性別 
+__label__char 医療 センター 
+__label__char 名 
+__label__num 団体 コード 
+__label__num GS 1 事業 者 コード 
+__label__char コメント 
+__label__char 団体 名 
+__label__char 時間 割 
+__label__num 半径 
+__label__boolean はいら ない 
+__label__drop 興味 ・ 関心 の ある 学科 
+__label__char 条件 
+__label__char 勘定 科目 
+__label__char FAX 
+__label__num ミリ 
+__label__num 価格 
+__label__boolean ある 
+__label__boolean 非 殺傷 
+__label__char 店 
+__label__num 合 
+__label__num キログラム 
+__label__char テキスト エリア 
+__label__num 支出 
+__label__char 稟議 書 
+__label__char 写し 
+__label__num 深夜 
+__label__char 発注 先 
+__label__char 丙 
+__label__char カテゴリ 
+__label__boolean のせ ない 
+__label__num 錠 
+__label__num 工事 費 
+__label__char 郵便 局 
+__label__boolean 加入 
+__label__char 希望 職種 
+__label__boolean いいえ 
+__label__num 月 
+__label__char 図書 館 
+__label__num 行 
+__label__boolean 有 
+__label__num 材料 費 
+__label__char ATC コード 
+__label__date 発行 年 月 
+__label__char 現 住所 
+__label__char その 他 
+__label__char 運行 ダイヤ 
+__label__num 都 道 府 県 コード 
+__label__char E - mail 
+__label__char TEL 
+__label__num 匹 
+__label__num 章 
+__label__num 会費 
+__label__char 市 町 村 
+__label__boolean 不 得意 
+__label__char 個別 医薬 品 コード 
+__label__boolean で ない 
+__label__char 予約 状況 
+__label__boolean し ない 
+__label__num 自治 体 コード 
+__label__char 薬剤 名 
+__label__boolean 許可 
+__label__char 始末 書 
+__label__num % 
+__label__char 立 候補 者 
+__label__boolean 殺傷 
+__label__char 具体 例 
+__label__char フリガナ 
+__label__char 確認 の ため もう 一 度 入力 し て ください 
+__label__num 源泉 所得 税 
+__label__char 記入 ください 
+__label__char 所在 地 
+__label__num メートル 
+__label__char 特記 欄 
+__label__date 調剤 日 
+__label__char 休暇 届 
+__label__char 発案 者 
+__label__radio 同意 し ます か 
+__label__char 調剤 明細 書 
+__label__radio 旧姓 が ある お 客 様 は 「 旧姓 あり 」 を 選択 し て ください 
+__label__num 通 
+__label__char 役職 
+__label__char 証券 番号 
+__label__char 問い合わせ 
+__label__num 階 
+__label__num センチメートル 
+__label__num 秒速 
+__label__char 発行 元 
+__label__char 確認 用 メール アドレス 
+__label__char 医療 法人 
+__label__char ユーザ 名 
+__label__char 工事 日 
+__label__char 保険 
+__label__char 部署 
+__label__char 病歴 
+__label__char 補助 科目 
+__label__char 届け先 
+__label__num 引出 額 
+__label__num 頭 
+__label__char 申請 書 
