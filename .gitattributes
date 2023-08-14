@@ -3,10 +3,10 @@ MeCab/* linguist-detectable=false
 fastText/* linguist-detectable = false
 bert-wiki-ja/* linguist-detectable=false
 
-*.html linguist-detectable=false
-*c++ linguist-detectable=false
-*.h linguist-detectable=false
-*.js linguist-detectable=false
-*shell linguist-detectable=false
-*perl linguist-detectable=false
-*.css linguist-detectable=false
+; *.html linguist-detectable=false
+; *c++ linguist-detectable=false
+; *.h linguist-detectable=false
+; *.js linguist-detectable=false
+; *shell linguist-detectable=false
+; *perl linguist-detectable=false
+; *.css linguist-detectable=false
