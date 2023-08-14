@@ -1,3 +1,4 @@
 Tesseract-OCR/* linguist-vendored
 MeCab/* linguist-vendored
 fastText/* linguist-vendored
+bert-wiki-ja/* linguist-vendored

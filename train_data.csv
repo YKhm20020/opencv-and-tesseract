@@ -266,7 +266,7 @@ char,利用規約
 char,社員ID
 char,教室
 char,氏名
-char,非保険者氏名
+char,被保険者氏名
 char,保険者名称
 char,保険者所在地
 char,事業所名称

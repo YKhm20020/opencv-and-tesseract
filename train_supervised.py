@@ -10,10 +10,11 @@ with open('train_fasttext.txt', 'r') as f:
   words_char = text.count('char')
   words_boolean = text.count('boolean')
 
-print(f'\ndate: {words_date}')
+print('\nnumber of data:')
+print(f'date: {words_date}')
 print(f'num: {words_num}')
 print(f'char: {words_char}')
 print(f'boolean: {words_boolean}')
 
 ret = model.predict("年齢")
-print(ret)
+print(f'{ret}\n')

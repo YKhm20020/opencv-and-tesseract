@@ -22,3 +22,4 @@ photolize.bin
 test_fasttext.txt
 train_fasttext.txt
 *.tsv
+/bert-wiki-ja
