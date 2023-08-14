@@ -1,4 +1,4 @@
-Tesseract-OCR/* linguist-detectable = false
-MeCab/* linguist-detectable = false
+Tesseract-OCR/* linguist-detectable=false
+MeCab/* linguist-detectable=false
 fastText/* linguist-detectable = false
-bert-wiki-ja/* linguist-detectable = false
+bert-wiki-ja/* linguist-detectable=false
