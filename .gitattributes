@@ -4,9 +4,9 @@ fastText/* linguist-detectable = false
 bert-wiki-ja/* linguist-detectable=false
 
 *.html linguist-detectable=false
-*.cc linguist-detectable=false
+*c++ linguist-detectable=false
 *.h linguist-detectable=false
 *.js linguist-detectable=false
-*.sh linguist-detectable=false
-*.pl linguist-detectable=false
+*shell linguist-detectable=false
+*perl linguist-detectable=false
 *.css linguist-detectable=false
