@@ -2,3 +2,9 @@ Tesseract-OCR/* linguist-detectable=false
 MeCab/* linguist-detectable=false
 fastText/* linguist-detectable = false
 bert-wiki-ja/* linguist-detectable=false
+
+*html linguist-detectable=false
+*cpp linguist-detectable=false
+*js linguist-detectable=false
+*sh linguist-detectable=false
+*css linguist-detectable=false
