@@ -52,3 +52,11 @@ RUN pip install unidic-lite
 RUN pip install git+https://github.com/facebookresearch/fastText.git@v0.9.2
 RUN pip install fasttext
 RUN pip install scikit-learn
+
+# Keras etc
+RUN pip install tensorflow
+RUN pip install keras
+RUN pip install keras_bert
+RUN pip install --upgrade keras_bert
+RUN pip install pandas
+RUN pip install sklearn
