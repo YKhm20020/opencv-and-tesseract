@@ -13,6 +13,6 @@ predicted_test_labels = model.predict([tkb.data['test_features'], tkb.data['test
 numeric_test_labels = np.array(tkb.data['test_labels']).argmax(axis=1)
 
 report = classification_report(
-        numeric_test_labels, predicted_test_labels, target_names=['date', 'num', 'char', 'boolean', 'radio', 'check', 'drop'], output_dict=True)
+        numeric_test_labels, predicted_test_labels, target_names=['date', 'num', 'char', 'radio', 'check'], output_dict=True)
 
 display(pd.DataFrame(report).T)
