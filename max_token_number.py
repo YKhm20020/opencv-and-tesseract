@@ -5,7 +5,7 @@ import pandas as pd
 import sentencepiece as spm
 
 # feature.csvは上記で用意したファイルのパスを指定してください
-train_features_df = pd.read_csv('features.csv')
+train_features_df = pd.read_csv('./bert/data/features.csv')
 
 def _get_feature_indice(feature):
     tokens = []
@@ -36,7 +36,7 @@ for feature in train_features_df['feature']:
     features_number = _get_feature_indice(feature)
     feature_numbers.append(features_number)
     
-train_labels_df = pd.read_csv('labels.csv')
+train_labels_df = pd.read_csv('./bert/data/labels.csv')
     
 for label in train_labels_df['label']:
     labels_number = _get_label_indice(label)

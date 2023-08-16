@@ -12,7 +12,7 @@ config_path = './bert-wiki-ja/bert_finetuning_config_v1.json'
 checkpoint_path = './bert-wiki-ja/model.ckpt-1400000'
 
 # 最大のトークン数
-SEQ_LEN = 16
+SEQ_LEN = 103
 BATCH_SIZE = 16
 BERT_DIM = 768
 LR = 1e-4
@@ -70,7 +70,6 @@ def _load_labeldata(train_dir, test_dir):
     test_segments = np.zeros((len(test_features), maxlen), dtype = np.float32)
 
     print(f'Trainデータ数: {len(train_features_df)}, Testデータ数: {len(test_features_df)}, ラベル数: {class_count}')
-    print(f'ラベル種類: {train_labels_df["label"].unique()}')
 
     return {
         'class_count': class_count,
@@ -90,9 +89,7 @@ def _load_labeldata(train_dir, test_dir):
 from keras.layers import Dense, Dropout, LSTM, Bidirectional, Flatten, GlobalMaxPooling1D
 from keras_bert.layers import MaskedGlobalMaxPool1D
 from keras import Input, Model
-from keras_bert import calc_train_steps
-import tensorflow as tf
-import tensorflow_addons as tfa
+from keras_bert import AdamWarmup, calc_train_steps
 
 
 def _create_model(input_shape, class_count):
@@ -110,7 +107,7 @@ def _create_model(input_shape, class_count):
     # Trainableでなければkeras-bertのModel.inputそのままで問題ありません。
     model = Model([bert.input[0], bert.input[1]], output_tensor)
     model.compile(loss='categorical_crossentropy',
-                  optimizer=tf.keras.optimizers.Adam(learning_rate=0.05),
+                  optimizer=AdamWarmup(decay_steps=decay_steps, warmup_steps=warmup_steps, lr=LR),
                   #optimizer='nadam',
                   metrics=['mae', 'mse', 'acc'])
 

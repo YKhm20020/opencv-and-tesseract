@@ -60,3 +60,4 @@ RUN pip install keras_bert
 RUN pip install --upgrade keras_bert
 RUN pip install pandas
 RUN pip install sklearn
+RUN pip install iPython
