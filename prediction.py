@@ -42,19 +42,25 @@ def _get_indice(feature):
             indices[t] = spp.piece_to_id('<unk>')
     return indices
 
-feature = "昨日は携帯電話を買いに行った。"
+feature = "氏名"
 
 test_features = []
 test_features.append(_get_indice(feature))
 test_segments = np.zeros(
     (len(test_features), maxlen), dtype=np.float32)
 
-predicted_test_labels = model.predict(
-    [test_features, test_segments]).argmax(axis=1)
+# predicted_test_labels = model.predict(
+#     [test_features, test_segments]).argmax(axis=1) # エラー箇所
 
-label_data = pd.read_csv('/bert/data/id_to_labels.csv')
+# predicted_test_labels = model.predict(test_features).argmax(axis=1) # xだけ入力する
+# test_labels = np.argmax(test_segments, axis=1) # yを別に作る
+
+predicted_test_labels = model.predict([np.array(test_features), test_segments]).argmax(axis=1) # xとyをリストで入力する
+
+label_data = pd.read_csv('./bert/data/id_to_labels.csv')
 label = label_data.query(f'id == {predicted_test_labels[0]}')
 label = label.iloc[0]
 label_name = label['label']
 
-print(predicted_test_labels[0])
+print(f'予測対象：{feature}')
+print(f'予測結果：{label_name}')

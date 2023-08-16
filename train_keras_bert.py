@@ -92,7 +92,6 @@ from keras_bert.layers import MaskedGlobalMaxPool1D
 from keras import Input, Model
 from keras_bert import calc_train_steps
 import tensorflow as tf
-import tensorflow_addons as tfa
 
 
 def _create_model(input_shape, class_count):

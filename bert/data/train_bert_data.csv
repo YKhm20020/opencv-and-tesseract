@@ -2,7 +2,6 @@ label,feature
 date,決済日
 date,年月日
 date,認定年月日
-date,署名年月日
 date,受付日
 date,締め切り
 date,更新日
@@ -11,7 +10,6 @@ date,記入日
 date,提出日
 date,工事日
 date,申し込み日
-date,申込日
 date,期限
 date,納期
 date,誕生日
@@ -29,8 +27,6 @@ date,予約日
 date,調剤日
 date,製造年月
 date,発行日
-date,発行年月
-date,発注日
 date,有効期限
 date,賞味期限
 date,費用発生日
@@ -39,9 +35,6 @@ date,起案日
 date,選任年月日
 date,書類作成日
 date,掲載時期
-date,入社年月日
-date,退職年月日
-date,表彰年月日
 date,雇用期間
 date,お届け日
 date,令和
@@ -148,7 +141,6 @@ num,養育費
 num,代金
 num,工事費
 num,施工費
-num,締入費
 num,額
 num,金額
 num,総額
@@ -165,7 +157,6 @@ num,税抜
 num,税込
 num,消費税含む
 num,税率
-num,繰越金額
 num,発注金額
 num,消費税
 num,源泉所得税
@@ -198,29 +189,12 @@ num,賠償金
 num,半径
 num,直径
 num,乗降客数
-num,採用者数
 num,合格者数
 num,登録番号
 num,クレジットカード番号
 num,店番号
 num,口座番号
-num,保険者番号
-num,薬効分類番号
-num,レセプト電算処理システム用コード
-num,レセ電算コード
-num,レセコンコード
-num,JANコード
-num,GS1事業者コード
-num,GTIN
-num,基準番号
-num,HOTコード
-num,自治体コード
-num,団体コード
-num,地方公共団体コード
-num,市区町村コード
 num,都道府県コード
-num,全国地方公共団体コード
-num,一部事務組合等コード
 num,稟議番号
 num,マイナンバー
 num,送料込
@@ -637,4 +611,3 @@ check,部門負担
 check,グループ負担
 check,□
 check,■
-label,feature

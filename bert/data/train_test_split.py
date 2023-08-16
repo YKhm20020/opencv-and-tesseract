@@ -5,7 +5,7 @@ features = pd.read_csv("bert/data/features.csv")
 labels = pd.read_csv("bert/data/labels.csv")
 
 # データの分割（テストデータを30%に設定）
-x_train, x_test, y_train, y_test = train_test_split(features, labels, train_size=0.8, test_size=0.2)
+x_train, x_test, y_train, y_test = train_test_split(features, labels, train_size=0.7, test_size=0.3)
 
 # 分割したデータの保存
 x_train.to_csv("bert/data/trains/features_train.csv", index=False)
