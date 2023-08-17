@@ -181,9 +181,9 @@ MeCab を使用して日本語のデータセットを分かち書きし、そ�
 
 なお、属性付与実行の方法としては、以下の順でファイルを実行するとよい。
 
-1. `python3 csv_to_owakati_txt.py` コマンドで、データセット train_data.csv を訓練データ train.tsv, テストデータ test.tsv に分割。それら2つを対象に、ラベル名の右にある日本語テキストを MeCab で分かち書きする。
+1. `python3 bert/old_version/csv_to_owakati_txt.py` コマンドで、データセット train_data.csv を訓練データ train.tsv, テストデータ test.tsv に分割。それら2つを対象に、ラベル名の右にある日本語テキストを MeCab で分かち書きする。
 
-2. `python3 train_supervised.py` コマンドで、分かち書きしたデータから学習モデルを生成、`ret = model.predict('<分類対象のテキスト>')` の行で対象のテキストを指定し、データにその型がいくつあるかと、分類結果を表示する。
+2. `python3 bert/old_version/train_supervised.py` コマンドで、分かち書きしたデータから学習モデルを生成、`ret = model.predict('<分類対象のテキスト>')` の行で対象のテキストを指定し、データにその型がいくつあるかと、分類結果を表示する。
 
 ## train_keras_bert.py について
 train_keras_bert は、Keras BERT を用いた文書分類を、既にあるデータセットをファインチューニングすることで学習モデルをつくるファイル。現在作成中。
@@ -192,6 +192,6 @@ train_keras_bert は、Keras BERT を用いた文書分類を、既にあるデ�
 
 1. `python3 bert/data/label_feature_split.py` コマンドで、ルートディレクトリにある train_data.csv を参照し、'label,feature' の一行を追加した train_bert_data.csv を bert/data に作成。同時に、label 列とtrain 列を分割した CSV ファイル2つを、tests, trains の2つディレクトリに作成する。(それぞれ labels_test.csv, labels_train.csv, features_test.csv, features_train.csv の計4つ)
 
-2. `python3 train_keras_bert.py` コマンドで、訓練・テストデータをもとに学習済みモデルをファインチューニング。処理後、モデルの評価を行う。
+2. `python3 train_keras_bert.py` コマンドで、訓練・テストデータをもとに学習済みモデルをファインチューニング。処理後、モデルの評価を行う。予測まで行いたい場合は、このコマンドをスキップ可。
 
-3. `python3 prediction.py` コマンドで、ファインチューニング後のモデルに対し、予測を行う。
+3. `python3 prediction.py` コマンドで、ファインチューニング後のモデルに対し、予測を行う。2. のコマンドも同時実行。
