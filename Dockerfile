@@ -35,6 +35,7 @@ COPY ./ /usr/src/app
 # install opencv
 RUN pip install opencv-python
 RUN pip install numpy
+RUN pip install pandas
 RUN pip install pyocr
 RUN pip install Pillow
 
@@ -58,6 +59,6 @@ RUN pip install tensorflow
 RUN pip install keras
 RUN pip install keras_bert
 RUN pip install --upgrade keras_bert
-RUN pip install pandas
 RUN pip install sklearn
 RUN pip install iPython
+RUN pip install einops
