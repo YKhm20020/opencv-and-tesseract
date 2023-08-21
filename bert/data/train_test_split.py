@@ -12,3 +12,5 @@ x_train.to_csv("bert/data/trains/features_train.csv", index=False)
 x_test.to_csv("bert/data/tests/features_test.csv", index=False)
 y_train.to_csv("bert/data/trains/labels_train.csv", index=False)
 y_test.to_csv("bert/data/tests/labels_test.csv", index=False)
+
+print('success')

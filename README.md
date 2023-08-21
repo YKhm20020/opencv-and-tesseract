@@ -192,6 +192,8 @@ train_keras_bert は、Keras BERT を用いた文書分類を、既にあるデ�
 
 1. `python3 bert/data/label_feature_split.py` コマンドで、ルートディレクトリにある train_data.csv を参照し、'label,feature' の一行を追加した train_bert_data.csv を bert/data に作成。同時に、label 列とtrain 列を分割した CSV ファイル2つを、tests, trains の2つディレクトリに作成する。(それぞれ labels_test.csv, labels_train.csv, features_test.csv, features_train.csv の計4つ)
 
-2. `python3 train_keras_bert.py` コマンドで、訓練・テストデータをもとに学習済みモデルをファインチューニング。処理後、モデルの評価を行う。予測まで行いたい場合は、このコマンドをスキップ可。
+2. `python3 bert/data/train_test_split.py`  コマンドで、1.で作成したCSVファイルをもとに、訓練データとテストデータにそれぞれ7:3の割合で分割する。
 
-3. `python3 prediction.py` コマンドで、ファインチューニング後のモデルに対し、予測を行う。2. のコマンドも同時実行。
+3. `python3 classification_report.py` コマンドで、3.の動作と作成したモデルを評価する。`python3 train_keras_bert.py` コマンドで、評価を行わず、モデルを作成することだけが可能。
+
+4. `python3 prediction.py` コマンドで、ファインチューニング後のモデルに対し、予測を行う。

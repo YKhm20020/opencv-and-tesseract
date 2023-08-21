@@ -138,3 +138,5 @@ history = model.fit([data['train_features'], data['train_segments']],
           callbacks = [
               ModelCheckpoint(monitor='val_acc', mode='max', filepath=model_filename, save_best_only=True)
           ])
+
+print('success')

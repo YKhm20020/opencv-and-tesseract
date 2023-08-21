@@ -27,3 +27,5 @@ with open('./bert/data/features.csv', 'w') as f:
   writer = csv.writer(f)
   # feature列を抽出して書き込む
   writer.writerows([[row[1]] for row in data])
+  
+print('success')
