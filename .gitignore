@@ -24,3 +24,5 @@ train_fasttext.txt
 *.tsv
 /bert-wiki-ja
 /bert/models/
+/bert-wiki-ja
+!/bert-wiki-ja/bert_finetuning_config_v1.json

@@ -58,7 +58,10 @@ RUN pip install scikit-learn
 RUN pip install tensorflow
 RUN pip install keras
 RUN pip install keras_bert
+RUN pip install transformers
+RUN pip install sentencepiece
 RUN pip install --upgrade keras_bert
+RUN pip --no-cache-dir install torch
 RUN pip install sklearn
 RUN pip install iPython
 RUN pip install einops
