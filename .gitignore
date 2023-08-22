@@ -25,3 +25,6 @@ train_fasttext.txt
 /bert/models/
 /bert-wiki-ja/*
 !/bert-wiki-ja/bert_finetuning_config_v1.json
+
+# Llama2 の学習データ
+Llama/models/*

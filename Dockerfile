@@ -23,9 +23,10 @@ RUN apt-get update -y \
     && add-apt-repository ppa:git-core/ppa
 
 RUN apt-get install -y git
+RUN apt-get install wget
 
 # install python and pip
-RUN apt install -y python3 python3-pip
+RUN apt install -y python3.10 python3-pip
 RUN pip install --upgrade pip
 RUN python3 -m pip install --upgrade pip setuptools
 
@@ -67,3 +68,6 @@ RUN pip --no-cache-dir install torch
 RUN pip install sklearn
 RUN pip install iPython
 RUN pip install einops
+
+# install for using Llama API
+RUN pip install replicate
