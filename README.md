@@ -197,3 +197,16 @@ train_keras_bert は、Keras BERT を用いた文書分類を、既にあるデ�
 3. `python3 classification_report.py` コマンドで、3.の動作と作成したモデルを評価する。`python3 train_keras_bert.py` コマンドで、評価を行わず、モデルを作成することだけが可能。
 
 4. `python3 prediction.py` コマンドで、ファインチューニング後のモデルに対し、予測を行う。
+
+## Llama_api.py について
+Meta が開発し、商用利用可能な大規模言語モデル Llama2 を無料公開している。この Llama2 をAPI利用によって、プロンプトと結果を送受信するプログラムである。詳細は、Llama ディレクトリの README.md を参照。  
+実行のコマンドは、 `python3 Llama_api.py` である。
+ 
+入力は、"Which of the following is the label of "〇〇" in Japanese: integer, string, single selection or multiple selection? Answer only these words." というプロンプトとなっている。日本語訳で、「〇〇というラベルは、整数、文字列、単一選択、複数選択のうち、どれにあたる？」 となる。〇〇の値を変化させ、任意の文字列についてラベルを付与する予定である。  
+出力については、汎用QAモデルによる出力であるため、決まった返事ではない。傾向として、"The label of "〇〇" in Japanese is "<ラベル名>"." という出力が多く見られた。  
+
+### Llama2 のAPIキーについて
+Llama2 をAPI利用するため、APIキーの発行と環境変数の変更が必須である。以下リンクのサイトの "Next, copy your API token and authenticate by setting it as an environment variable:" からAPIキーを取得し、以下のコマンドを実行することでAPIキーを登録することができる。
+
+- サイトのリンク：[replicate/llama-2-70b-chat (公式サイト)](https://replicate.com/replicate/llama-2-70b-chat/api)
+- コマンド：`export REPLICATE_API_TOKEN=<APIキー>`

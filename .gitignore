@@ -28,3 +28,6 @@ train_fasttext.txt
 
 # Llama2 の学習データ
 Llama/models/*
+
+# Llama2 の APIキーを保存した .env ファイル
+/.env
