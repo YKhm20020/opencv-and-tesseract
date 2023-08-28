@@ -19,7 +19,7 @@ os.environ['TESSDATA_PREFIX'] = TESSDATA_PATH
 results_path = './results'
 os.makedirs(results_path, exist_ok = True)
 
-input_image = './sample/sample.jpg'
+input_image = './sample/sample3.png'
  
 # 利用可能なOCRツールを取得
 tools = pyocr.get_available_tools()
@@ -31,7 +31,8 @@ if len(tools) == 0:
     print('Do not find OCR tools')
     sys.exit(1)
 
-tool = tools[0]
+# tools[1] へ変更を検討。結果はほぼ変更がないがやや高速。入力画像によっては少し1がよいかも？　程度
+tool = tools[1]
  
 # 画像から文字列を取得
 img = cv2.imread(input_image)
@@ -40,13 +41,6 @@ img = cv2.imread(input_image)
 img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 img_gray = cv2.GaussianBlur(img_gray, (3, 3), 0)
 retval, img_bw = cv2.threshold(img_gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-
-med_val = np.median(img_bw)
-sigma = 0.33
-min_val = int(max(0, (1.0 - sigma) * med_val))
-max_val = int(max(255, (1.0 + sigma) * med_val))
-edges = cv2.Canny(img_bw, threshold1 = min_val, threshold2 = max_val)
-cv2.imwrite(f'{results_path}/result3.png', edges) # 確認用
 
 # 配列を画像に変換
 img_bw = Image.fromarray(img_bw)
