@@ -1,6 +1,6 @@
 import replicate
 
-# 〇〇というラベルは、整数、文字列、単一選択、複数選択のうち、どれにあたる？
+# 〇〇というラベルは、日付、整数、文字列、単一選択、複数選択のうち、どれにあたる？
 output = replicate.run(
     "replicate/llama-2-70b-chat:2c1608e18606fad2812020dc541930f2d0495ce32eee50074220b87300bc16e1",
     input={"prompt": 'Which of the following is the label of "年月日" in Japanese: date, integer, string, single selection or multiple selection? Answer only these words.'}

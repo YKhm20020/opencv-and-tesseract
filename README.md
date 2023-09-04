@@ -4,7 +4,28 @@
 具体的には、入力画像を二値化した後に矩形領域を取得するという内容である。
 
 # 実行環境
-- OS: Window8, Windows10
+- OS: Window10, Windows11
+- Ubuntu: 22.04
+- Python: 3.10
+- Tesseract: 5.0.0
+- MeCab: 0.996
+
+Docker で Ubuntu 環境を構築し、実行している。
+
+# 必要なファイル
+卒業論文執筆のため、制作過程のプログラムファイルも残している。最新版のものはルートディレクトリに置いており、以下の名前のファイルをそれぞれ動作させている。
+
+- export_array_boxline.py
+矩形領域の座標、および下線部の座標を出力するファイル。
+
+- OCR2.py
+TesseractOCR を用いて文字認識を行うファイル。
+
+- OCR_paddle.py, OCR_paddle_color.py
+PaddleOCR を用いて文字認識を行うファイル。精度の比較用に用意。
+
+- Llama.api.py
+Llama2 のモデルのうち、replicate にあるチャットボットを、APIを利用してラベルの属性を判定するファイル。
 
 # 矩形領域を抽出する機能
 
@@ -161,7 +182,7 @@ Dockerfile によってコンテナ作成後、上のコマンドで OCR_paddle.
 ```
 
 
-## export_array_ex, OCR_ex について
+## export_array_ex, OCR_ex について (失敗のため不要)
 export_array_ex.py という名前のファイルは、 export_array と同じく矩形領域を検出する機能に加え、新たにその矩形領域ごとに画像を切り取る機能を追加したものである。  
 現段階ではまだ使うことはないが、調査したところ、画像を文字ごとに切り取ると OCR の精度がより向上するようなので、先に実装を進めた。  
 しかし、Tesseract-OCR にこの処理を適応させた OCR_ex.py を作成・実行したものの、精度は明確に低下した。　
@@ -185,7 +206,7 @@ MeCab を使用して日本語のデータセットを分かち書きし、そ�
 
 2. `python3 bert/old_version/train_supervised.py` コマンドで、分かち書きしたデータから学習モデルを生成、`ret = model.predict('<分類対象のテキスト>')` の行で対象のテキストを指定し、データにその型がいくつあるかと、分類結果を表示する。
 
-## train_keras_bert.py について
+## train_keras_bert.py について (失敗のため不要)
 train_keras_bert は、Keras BERT を用いた文書分類を、既にあるデータセットをファインチューニングすることで学習モデルをつくるファイル。現在作成中。
 
 以下のコマンドを順に実行することで、正しく動作する。
@@ -202,7 +223,7 @@ train_keras_bert は、Keras BERT を用いた文書分類を、既にあるデ�
 Meta が開発し、商用利用可能な大規模言語モデル Llama2 を無料公開している。この Llama2 をAPI利用によって、プロンプトと結果を送受信するプログラムである。詳細は、Llama ディレクトリの README.md を参照。  
 実行のコマンドは、 `python3 Llama_api.py` である。
  
-入力は、"Which of the following is the label of "〇〇" in Japanese: integer, string, single selection or multiple selection? Answer only these words." というプロンプトとなっている。日本語訳で、「〇〇というラベルは、整数、文字列、単一選択、複数選択のうち、どれにあたる？」 となる。〇〇の値を変化させ、任意の文字列についてラベルを付与する予定である。  
+入力は、"Which of the following is the label of "〇〇" in Japanese: date, integer, string, single selection or multiple selection? Answer only these words." というプロンプトとなっている。日本語訳で、「〇〇というラベルは、日付、整数、文字列、単一選択、複数選択のうち、どれにあたる？」 となる。〇〇の値を変化させ、任意の文字列についてラベルを付与する予定である。  
 出力については、汎用QAモデルによる出力であるため、決まった返事ではない。傾向として、"The label of "〇〇" in Japanese is "<ラベル名>"." という出力が多く見られた。  
 
 ### Llama2 のAPIキーについて
@@ -210,3 +231,16 @@ Llama2 をAPI利用するため、APIキーの発行と環境変数の変更が�
 
 - サイトのリンク：[replicate/llama-2-70b-chat (公式サイト)](https://replicate.com/replicate/llama-2-70b-chat/api)
 - コマンド：`export REPLICATE_API_TOKEN=<APIキー>`
+
+# 動かなかったもの一覧
+不要ファイル削除にあたって、メモリ不足などが原因で動かなかったLLMを以下にまとめる。
+
+- rinna/japanese-gpt-1b
+- rinna/japanese-gpt2-medium
+- gpt-j
+- oshizo/qa-refine-japanese-gpt-1b
+- studio-ousia/luke-large-finetuned-tacred
+- line-corporation/japanese-large-lm-1.7b-instruction-sft
+- Jumtra/mpt-7b-inst
+- databricks/dolly-v2-3b
+- line-corporation/line-distilbert-base-japanese (MASC で分類できず)
