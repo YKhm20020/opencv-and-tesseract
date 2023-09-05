@@ -1,9 +1,9 @@
 import MeCab
-import OCR2
+import OCR
 
-for i, line in enumerate(OCR2.lines):
+for i, line in enumerate(OCR.lines):
   tagger = MeCab.Tagger()
-  result = tagger.parse(OCR2.text_result[i])
+  result = tagger.parse(OCR.text_result[i])
   print(result)
   
 tagger = MeCab.Tagger()
