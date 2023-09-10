@@ -83,12 +83,11 @@ for i, line in enumerate(splitted_txt):
     for count_symbol, word in enumerate(tagger(text[i])): 
         if word.feature.lemma != '〒' and (word.pos == '補助記号,一般,*,*' or word.pos == '感動詞,フィラー,*,*'):
             count += 1
-    # 全ての要素が不要な品詞である場合、インデックスを保存してスキップ
+    # 全ての要素が不要な品詞である場合、インデックスを保存。
     if count_symbol + 1 == count:
         delete_index.append(i)
-        continue
-    
-    text_result.append(line)
+    else:
+        text_result.append(line)
     
 for i, box in enumerate(res):
     # 保存したインデックス番目の場合、bounding_box_result の append をスキップ
