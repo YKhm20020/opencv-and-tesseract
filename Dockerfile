@@ -55,5 +55,9 @@ RUN pip install mecab-python3
 ENV MECABRC ./MeCab/etc/mecabrc
 RUN pip install unidic-lite
 
+# install Fugashi, unidic
+RUN pip install fugashi[unidic]
+RUN python3 -m unidic download
+
 # install for using Llama API
 RUN pip install replicate

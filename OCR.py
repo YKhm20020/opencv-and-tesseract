@@ -19,7 +19,7 @@ os.environ['TESSDATA_PREFIX'] = TESSDATA_PATH
 results_path = './results'
 os.makedirs(results_path, exist_ok = True)
 
-input_image = './sample/sample3.png'
+input_image = './sample/sample.jpg'
  
 # 利用可能なOCRツールを取得
 tools = pyocr.get_available_tools()
@@ -32,7 +32,7 @@ if len(tools) == 0:
     sys.exit(1)
 
 # tools[1] へ変更を検討。結果はほぼ変更がないがやや高速。入力画像によっては少し1がよいかも？　程度
-tool = tools[1]
+tool = tools[0]
  
 # 画像から文字列を取得
 img = cv2.imread(input_image)
@@ -72,9 +72,11 @@ text_result = []
 res_txt = res_txt.replace(' ', '')
 res_txt = res_txt.replace('\n\n', '\n') # 余分な改行を削除
 lines = res_txt.split('\n') # 改行で分割
+
 for i, line in enumerate(lines):
     print(f'chars[{i}] {res[i].position} : {line}') # 座標と文字列を出力
     text_result.append(line)
+    cv2.putText(out, str(i), res[i].position[0], cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
  
 # 検出結果の画像を表示
 cv2.imwrite('img_OCR.png', out)
