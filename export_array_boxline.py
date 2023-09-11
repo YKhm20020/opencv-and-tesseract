@@ -39,7 +39,7 @@ input_image = './sample/sample4.jpg'
 #input_image = './sample/P/26休暇届_/A089夏季休暇届.png'
 
 img = cv2.imread(input_image)
-img2 = cv2.imread(input_image)
+img_underline = cv2.imread(input_image)
 
 # BGR -> グレースケール
 img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -115,9 +115,7 @@ cv2.imwrite('img.png', img)
 rect_sorted_memory = np.array(rect_sorted_memory)
 rect_sorted_list = rect_sorted_memory.tolist()
 
-# .npy, .txt, .json, .csv ファイルで矩形領域の座標をエクスポート
-np.save(f'{data_npy_path}/rects_data', rect_sorted_memory)
-
+# .txt, .json, .csv ファイルで矩形領域の座標をエクスポート
 with open(f'{data_txt_path}/rects_data.txt', 'w') as f:
     json.dump(rect_sorted_list, f)
 
@@ -213,8 +211,8 @@ else:
     else:
         for i, line in enumerate(unique_horizontal_nparray):
             x1, y1, x2, y2 = unique_horizontal_nparray[i]
-            cv2.line(img2, (x1, y1), (x2, y2), (0, 255, 0), 2)
-            cv2.putText(img2, str(i), (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
+            cv2.line(img_underline, (x1, y1), (x2, y2), (0, 255, 0), 2)
+            cv2.putText(img_underline, str(i), (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
 
             print('line(%d):' %i, unique_horizontal_nparray[i])
 
@@ -237,13 +235,11 @@ else:
     # print("min_y: %d" % min_y)
     # print("max_y: %d" % max_y)
 
-    cv2.imwrite('img2.png', img2)
+    cv2.imwrite('img_underline.png', img_underline)
     
     unique_horizontal_list = unique_horizontal_nparray.tolist()
     
-    # .npy, .txt, .json, .csv ファイルで下線の座標をエクスポート
-    np.save(f'{data_npy_path}/underlines_data', unique_horizontal_nparray)
-
+    # .txt, .json, .csv ファイルで下線の座標をエクスポート
     with open(f'{data_txt_path}/underlines_data.txt', 'w') as f:
         json.dump(unique_horizontal_list, f)
 

@@ -3,7 +3,6 @@ import pyocr
 import pyocr.builders
 import pyocr.tesseract
 import cv2
-import numpy as np
 from PIL import Image
 import sys
 from fugashi import Tagger
@@ -20,13 +19,12 @@ TESSDATA_PATH = os.path.join(TESSERACT_PATH, 'tessdata')
 os.environ['TESSDATA_PREFIX'] = TESSDATA_PATH
 
 # ディレクトリ作成、入力画像の決定と読み取り
-dir = ['./results', './data/txt', './data/json', './data/npy', './data/csv']
-results_path, data_txt_path, data_json_path, data_npy_path, data_csv_path = dir
+dir = ['./results', './data/txt', './data/json', './data/csv']
+results_path, data_txt_path, data_json_path, data_csv_path = dir
 
 os.makedirs(results_path, exist_ok = True)
 os.makedirs(data_txt_path, exist_ok = True)
 os.makedirs(data_json_path, exist_ok = True)
-os.makedirs(data_npy_path, exist_ok = True)
 os.makedirs(data_csv_path, exist_ok = True)
 
 input_image = './sample/sample2.jpg'
@@ -78,6 +76,10 @@ res_txt = res_txt.replace(' ', '')
 res_txt = res_txt.replace('\n\n', '\n') # 余分な改行を削除
 splitted_txt = res_txt.split('\n') # 改行で分割
 
+# 除外にするか否かを特別に判断するブラックリスト・ホワイトリスト
+text_white_list = ['〒']
+text_black_list = ['！']
+
 for i, line in enumerate(splitted_txt):
     text.append(line)
     tagger = Tagger('-Owakati')
@@ -87,15 +89,17 @@ for i, line in enumerate(splitted_txt):
     # 形態素解析によって誤検知を排除
     parts, count_symbol = 0, 0
     for parts, word in enumerate(tagger(text[i])): 
-        if word.feature.lemma != '〒' and (word.pos == '補助記号,一般,*,*' or word.pos == '感動詞,フィラー,*,*'):
+        if word.feature.lemma in text_black_list or (word.pos == '補助記号,一般,*,*' or word.pos == '感動詞,フィラー,*,*'):
             count_symbol += 1
-        # 形態素解析確認用
-        # print(word, word.feature.lemma, word.pos, sep='\t') 
+        if word.feature.lemma in text_white_list:
+            count_symbol -= 1
+        #print(word, word.feature.lemma, word.pos, sep='\t')  # 形態素解析確認用
+    
     # 一定割合以上が不要な品詞である場合、インデックスを保存。
-    if count_symbol + 1 >= parts * 0.6:
-        delete_index.append(i)
-    else:
+    if count_symbol <= parts * 0.5 or (parts == 1 and count_symbol == parts):
         text_result.append(line)
+    else:
+        delete_index.append(i)
     
 for i, box in enumerate(res):
     # 保存したインデックス番目の場合、誤検知とみなし、抽出対象としない。
@@ -109,9 +113,7 @@ for i, line in enumerate(text_result):
     cv2.rectangle(out, bounding_box_result[i][0], bounding_box_result[i][1], (0, 0, 255), 1) #検出した箇所を赤枠で囲む
     cv2.putText(out, str(i), bounding_box_result[i][0], cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2) # 番号をふる
 
-# .npy, .txt, .json, .csv ファイルで文字位置を示すバウンディングボックスの座標をエクスポート
-np.save(f'{data_npy_path}/char_bounding_box_data', bounding_box_result)
-
+# .txt, .json, .csv ファイルで文字位置を示すバウンディングボックスの座標をエクスポート
 with open(f'{data_txt_path}/char_bounding_box_data.txt', 'w') as f:
     json.dump(bounding_box_result, f)
 
@@ -123,9 +125,7 @@ with open(f'{data_csv_path}/char_bounding_box_data.csv', 'w') as f:
     writer = csv.writer(f)
     writer.writerow(bounding_box_result)
     
-# .npy, .txt, .json, .csv ファイルで抽出した文字をエクスポート
-np.save(f'{data_npy_path}/char_text_data', text_result)
-
+# .txt, .json, .csv ファイルで抽出した文字をエクスポート
 with open(f'{data_txt_path}/char_text_data.txt', 'w', encoding='utf_8_sig') as f:
     json.dump(text_result, f)
 

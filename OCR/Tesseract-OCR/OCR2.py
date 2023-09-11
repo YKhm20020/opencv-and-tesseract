@@ -19,7 +19,7 @@ os.environ['TESSDATA_PREFIX'] = TESSDATA_PATH
 results_path = './results'
 os.makedirs(results_path, exist_ok = True)
 
-input_image = './sample/sample.jpg'
+input_image = './sample/sample2.jpg'
  
 # 利用可能なOCRツールを取得
 tools = pyocr.get_available_tools()
