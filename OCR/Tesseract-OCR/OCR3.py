@@ -7,9 +7,6 @@ import numpy as np
 from PIL import Image
 import sys
 from fugashi import Tagger
-# 以下、データ出力用
-import json
-import csv
 
 # インストール済みのTesseractへパスを通す
 TESSERACT_PATH = os.path.abspath('TESSERACT-OCR')
@@ -20,14 +17,8 @@ TESSDATA_PATH = os.path.join(TESSERACT_PATH, 'tessdata')
 os.environ['TESSDATA_PREFIX'] = TESSDATA_PATH
 
 # ディレクトリ作成、入力画像の決定と読み取り
-dir = ['./results', './data/txt', './data/json', './data/npy', './data/csv']
-results_path, data_txt_path, data_json_path, data_npy_path, data_csv_path = dir
-
+results_path = './results'
 os.makedirs(results_path, exist_ok = True)
-os.makedirs(data_txt_path, exist_ok = True)
-os.makedirs(data_json_path, exist_ok = True)
-os.makedirs(data_npy_path, exist_ok = True)
-os.makedirs(data_csv_path, exist_ok = True)
 
 input_image = './sample/sample2.jpg'
  
@@ -68,6 +59,9 @@ res_txt = tool.image_to_string(
     lang='jpn',
     builder=builder_text,
 )
+ 
+# 画像のどの部分を検出し、どう認識したかを分析
+out = cv2.imread(input_image)
 
 # 取得した文字列を表示
 text = []
@@ -84,57 +78,29 @@ for i, line in enumerate(splitted_txt):
     tagger.parse(text[i])
     result = tagger.parse(text[i])
     
+    
     # 形態素解析によって誤検知を排除
     parts, count_symbol = 0, 0
     for parts, word in enumerate(tagger(text[i])): 
         if word.feature.lemma != '〒' and (word.pos == '補助記号,一般,*,*' or word.pos == '感動詞,フィラー,*,*'):
             count_symbol += 1
-        # 形態素解析確認用
-        # print(word, word.feature.lemma, word.pos, sep='\t') 
+        print(word, word.feature.lemma, word.pos, sep='\t') 
     # 一定割合以上が不要な品詞である場合、インデックスを保存。
     if count_symbol + 1 >= parts * 0.6:
         delete_index.append(i)
     else:
         text_result.append(line)
     
+    
 for i, box in enumerate(res):
-    # 保存したインデックス番目の場合、誤検知とみなし、抽出対象としない。
+    # 保存したインデックス番目の場合、bounding_box_result の append をスキップ
     if not i in delete_index:
         bounding_box_result.append(box.position)
-        
-out = cv2.imread(input_image)
 
 for i, line in enumerate(text_result):
     print(f'chars[{i}] {bounding_box_result[i]} : {text_result[i]}') # 座標と文字列を出力
     cv2.rectangle(out, bounding_box_result[i][0], bounding_box_result[i][1], (0, 0, 255), 1) #検出した箇所を赤枠で囲む
     cv2.putText(out, str(i), bounding_box_result[i][0], cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2) # 番号をふる
-
-# .npy, .txt, .json, .csv ファイルで文字位置を示すバウンディングボックスの座標をエクスポート
-np.save(f'{data_npy_path}/char_bounding_box_data', bounding_box_result)
-
-with open(f'{data_txt_path}/char_bounding_box_data.txt', 'w') as f:
-    json.dump(bounding_box_result, f)
-
-with open(f'{data_json_path}/char_bounding_box_data.json', 'w') as f:
-    json.dump(bounding_box_result, f)
-
-# CSV 出力できていないので注意。要修正。
-with open(f'{data_csv_path}/char_bounding_box_data.csv', 'w') as f:
-    writer = csv.writer(f)
-    writer.writerow(bounding_box_result)
-    
-# .npy, .txt, .json, .csv ファイルで抽出した文字をエクスポート
-np.save(f'{data_npy_path}/char_text_data', text_result)
-
-with open(f'{data_txt_path}/char_text_data.txt', 'w', encoding='utf_8_sig') as f:
-    json.dump(text_result, f)
-
-with open(f'{data_json_path}/char_text_data.json', 'w', encoding='utf_8_sig') as f:
-    json.dump(text_result, f)
-    
-with open(f'{data_csv_path}/char_text_data.csv', 'w', encoding='utf_8_sig') as f:
-    writer = csv.writer(f)
-    writer.writerow(text_result)
 
 # 検出結果の画像を表示
 cv2.imwrite('img_OCR.png', out)
