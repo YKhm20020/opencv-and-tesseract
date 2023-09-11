@@ -33,7 +33,7 @@ input_image = './sample/sample2.jpg'
 tools = pyocr.get_available_tools()
 
 for tool in tools:
-    print(tool.get_name())
+    print(tool.get_name()) # 確認用
  
 if len(tools) == 0:
     print('Do not find OCR tools')
@@ -76,9 +76,12 @@ res_txt = res_txt.replace(' ', '')
 res_txt = res_txt.replace('\n\n', '\n') # 余分な改行を削除
 splitted_txt = res_txt.split('\n') # 改行で分割
 
-# 除外にするか否かを特別に判断するブラックリスト・ホワイトリスト
-text_white_list = ['〒']
-text_black_list = ['！']
+# 除外対象外と判断するホワイトリスト
+text_white_list = ['〒'] 
+
+# 除外対象と判断するブラックリスト
+text_black_list = ['！'] 
+pos_black_list = ['補助記号,一般,*,*', '感動詞,フィラー,*,*']
 
 for i, line in enumerate(splitted_txt):
     text.append(line)
@@ -89,7 +92,7 @@ for i, line in enumerate(splitted_txt):
     # 形態素解析によって誤検知を排除
     parts, count_symbol = 0, 0
     for parts, word in enumerate(tagger(text[i])): 
-        if word.feature.lemma in text_black_list or (word.pos == '補助記号,一般,*,*' or word.pos == '感動詞,フィラー,*,*'):
+        if word.feature.lemma in text_black_list or word.pos in pos_black_list:
             count_symbol += 1
         if word.feature.lemma in text_white_list:
             count_symbol -= 1
@@ -110,7 +113,7 @@ out = cv2.imread(input_image)
 
 for i, line in enumerate(text_result):
     print(f'chars[{i}] {bounding_box_result[i]} : {text_result[i]}') # 座標と文字列を出力
-    cv2.rectangle(out, bounding_box_result[i][0], bounding_box_result[i][1], (0, 0, 255), 1) #検出した箇所を赤枠で囲む
+    cv2.rectangle(out, bounding_box_result[i][0], bounding_box_result[i][1], (0, 0, 255), 1) # 検出した箇所を赤枠で囲む
     cv2.putText(out, str(i), bounding_box_result[i][0], cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2) # 番号をふる
 
 # .txt, .json, .csv ファイルで文字位置を示すバウンディングボックスの座標をエクスポート
@@ -120,7 +123,6 @@ with open(f'{data_txt_path}/char_bounding_box_data.txt', 'w') as f:
 with open(f'{data_json_path}/char_bounding_box_data.json', 'w') as f:
     json.dump(bounding_box_result, f)
 
-# CSV 出力できていないので注意。要修正。
 with open(f'{data_csv_path}/char_bounding_box_data.csv', 'w') as f:
     writer = csv.writer(f)
     writer.writerow(bounding_box_result)

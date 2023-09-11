@@ -51,10 +51,6 @@ retval, img_bw = cv2.threshold(img_gray, 0, 255, cv2.THRESH_TOZERO_INV + cv2.THR
 
 cv2.imwrite(f'{results_path}/result1_gray.png', img_bw) # 確認用
 
-# 矩形領域と下線部検出で処理を分けるか検討。ガウシアンフィルタ適用の是非など。
-# img_gray_line = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-# img_gray_line2 = cv2.bitwise_not(img_gray_line)
-
 # 膨張処理
 kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (4, 4))
 img_bw = cv2.dilate(img_bw, kernel, iterations = 1)
