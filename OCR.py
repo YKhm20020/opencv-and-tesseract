@@ -6,6 +6,7 @@ import cv2
 import numpy as np
 from PIL import Image
 import sys
+from fugashi import Tagger
 
 # インストール済みのTesseractへパスを通す
 TESSERACT_PATH = os.path.abspath('TESSERACT-OCR')
@@ -19,7 +20,7 @@ os.environ['TESSDATA_PREFIX'] = TESSDATA_PATH
 results_path = './results'
 os.makedirs(results_path, exist_ok = True)
 
-input_image = './sample/sample.jpg'
+input_image = './sample/sample2.jpg'
  
 # 利用可能なOCRツールを取得
 tools = pyocr.get_available_tools()
@@ -61,22 +62,45 @@ res_txt = tool.image_to_string(
  
 # 画像のどの部分を検出し、どう認識したかを分析
 out = cv2.imread(input_image)
- 
-for box in res:
-    print(box.content) #どの文字として認識したか
-    print(box.position) #どの位置を検出したか
-    cv2.rectangle(out, box.position[0], box.position[1], (0, 0, 255), 1) #検出した箇所を赤枠で囲む
 
 # 取得した文字列を表示
+text = []
 text_result = []
+delete_index = []
+bounding_box_result = []
 res_txt = res_txt.replace(' ', '')
 res_txt = res_txt.replace('\n\n', '\n') # 余分な改行を削除
-lines = res_txt.split('\n') # 改行で分割
+splitted_txt = res_txt.split('\n') # 改行で分割
 
-for i, line in enumerate(lines):
-    print(f'chars[{i}] {res[i].position} : {line}') # 座標と文字列を出力
-    text_result.append(line)
-    cv2.putText(out, str(i), res[i].position[0], cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
- 
+for i, line in enumerate(splitted_txt):
+    text.append(line)
+    tagger = Tagger('-Owakati')
+    tagger.parse(text[i])
+    result = tagger.parse(text[i])
+    
+    
+    # 形態素解析によって誤検知を排除
+    parts, count_symbol = 0, 0
+    for parts, word in enumerate(tagger(text[i])): 
+        if word.feature.lemma != '〒' and (word.pos == '補助記号,一般,*,*' or word.pos == '感動詞,フィラー,*,*'):
+            count_symbol += 1
+        print(word, word.feature.lemma, word.pos, sep='\t') 
+    # 一定割合以上が不要な品詞である場合、インデックスを保存。
+    if count_symbol + 1 >= parts * 0.6:
+        delete_index.append(i)
+    else:
+        text_result.append(line)
+    
+    
+for i, box in enumerate(res):
+    # 保存したインデックス番目の場合、bounding_box_result の append をスキップ
+    if not i in delete_index:
+        bounding_box_result.append(box.position)
+
+for i, line in enumerate(text_result):
+    print(f'chars[{i}] {bounding_box_result[i]} : {text_result[i]}') # 座標と文字列を出力
+    cv2.rectangle(out, bounding_box_result[i][0], bounding_box_result[i][1], (0, 0, 255), 1) #検出した箇所を赤枠で囲む
+    cv2.putText(out, str(i), bounding_box_result[i][0], cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2) # 番号をふる
+
 # 検出結果の画像を表示
 cv2.imwrite('img_OCR.png', out)

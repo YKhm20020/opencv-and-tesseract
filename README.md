@@ -20,12 +20,10 @@ Docker で Ubuntu 環境を構築し、実行している。
 
 - OCR.py
 TesseractOCR を用いて文字認識を行うファイル。
+Fugashi を用いて、Tesseract で抽出した文字に対して形態素解析を行い、感嘆詞や補助記号など、単体では意味を成さない文字のみで構成されたものを排除した結果を出力するよう更新。
 
 - OCR_paddle.py, OCR_paddle_color.py
 PaddleOCR を用いて文字認識を行うファイル。精度の比較用に用意。
-
-- OCR_fugashi.py
-Fugashi を用いて、Tesseract で抽出した文字に対して形態素解析を行い、感嘆詞や補助記号など、単体では意味を成さない文字のみで構成されたものを排除した結果を出力するファイル。OCR.py の高精度版。
 
 - Llama.api.py
 Llama2 のモデルのうち、replicate にあるチャットボットを、APIを利用してラベルの属性を判定するファイル。
