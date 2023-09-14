@@ -40,6 +40,8 @@ RUN pip install numpy
 RUN pip install pandas
 RUN pip install pyocr
 RUN pip install Pillow
+RUN pip install pdf2image
+RUN apt-get install poppler-utils
 
 # install PaddleOCR
 RUN apt remove -y python3-blinker
@@ -50,14 +52,12 @@ RUN python3 -m pip install paddlepaddle==2.4.1 -i https://pypi.tuna.tsinghua.edu
 RUN pip install pyinstaller
 RUN pip install loguru
 
-# install MeCab, unidic-lite
-RUN pip install mecab-python3
-ENV MECABRC ./MeCab/etc/mecabrc
-RUN pip install unidic-lite
-
 # install Fugashi, unidic
 RUN pip install fugashi[unidic]
 RUN python3 -m unidic download
 
 # install for using Llama API
 RUN pip install replicate
+
+RUN pip install llama-cpp-python
+RUN pip install --force-reinstall --ignore-installed --no-cache-dir llama-cpp-python==0.1.65

@@ -27,7 +27,7 @@ os.makedirs(data_txt_path, exist_ok = True)
 os.makedirs(data_json_path, exist_ok = True)
 os.makedirs(data_csv_path, exist_ok = True)
 
-input_image = './sample/sample2.jpg'
+input_image = './sample/sample6.png'
  
 # 利用可能なOCRツールを取得
 tools = pyocr.get_available_tools()

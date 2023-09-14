@@ -1,6 +1,7 @@
 import os
 import sys
 import cv2
+from pdf2image import convert_from_path
 import numpy as np
 # 以下、データ出力用
 import json
@@ -19,17 +20,19 @@ def sort_points(points):
     # 順序に従ってリストにする
     return [tl, tr, br, bl]
 
+
+
 # ディレクトリ作成、入力画像の決定と読み取り
-dir = ['./results', './data/txt', './data/json', './data/npy', './data/csv']
-results_path, data_txt_path, data_json_path, data_npy_path, data_csv_path = dir
+dir = ['./results', './data/txt', './data/json', './data/csv']
+results_path, data_txt_path, data_json_path, data_csv_path = dir
 
 os.makedirs(results_path, exist_ok = True)
 os.makedirs(data_txt_path, exist_ok = True)
 os.makedirs(data_json_path, exist_ok = True)
-os.makedirs(data_npy_path, exist_ok = True)
 os.makedirs(data_csv_path, exist_ok = True)
 
-input_image = './sample/sample.jpg'
+input_image =  './sample/P/3．入出退健康管理簿.pdf'
+#input_image = './sample/sample_mid.jpg'
 #input_image = './sample/P/02稟議書_/A281新卒者採用稟議書.png'
 #input_image = './sample/P/02稟議書_/A282広告出稿稟議書.png'
 #input_image = './sample/P/02稟議書_/A321稟議書.png'
@@ -38,31 +41,41 @@ input_image = './sample/sample.jpg'
 #input_image = './sample/P/18作業報告書_/B090入庫報告書.png'
 #input_image = './sample/P/26休暇届_/A089夏季休暇届.png'
 
-img = cv2.imread(input_image)
-img_underline = cv2.imread(input_image)
+if input_image.endswith('pdf'):
+    input_image = convert_from_path(pdf_path = input_image, dpi = 300, fmt = 'png')
+    # リストから最初の画像を選択
+    input_image = input_image[0] 
+    # PIL.Image を NumPy 配列に変換
+    input_image = np.array(input_image) 
+    # RGB から BGR に色空間を変換
+    input_image = cv2.cvtColor(input_image, cv2.COLOR_RGB2BGR)
+    
+    img, img_underline = input_image, input_image
 
-# BGR -> グレースケール, Gaussian フィルタ
+else:
+    img = cv2.imread(input_image)
+    img_underline = cv2.imread(input_image)
+
+# BGR -> グレースケール
 img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-img_gray = cv2.GaussianBlur(img_gray, (3, 3), 2)
+img_gray = cv2.GaussianBlur(img_gray, (3, 3), 0)
 
 # 第四引数が cv2.THRESH_TOZERO_INV で直線をひとつ多く検出したことを確認。他サンプルと比較必須。
-#retval, img_bw = cv2.threshold(img_gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
-retval, img_bw = cv2.threshold(img_gray, 0, 255, cv2.THRESH_TOZERO_INV + cv2.THRESH_OTSU)
+retval, img_bw = cv2.threshold(img_gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+#retval, img_bw = cv2.threshold(img_gray, 0, 255, cv2.THRESH_TOZERO_INV + cv2.THRESH_OTSU)
 
 cv2.imwrite(f'{results_path}/result1_gray.png', img_bw) # 確認用
 
 # 膨張処理
-kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (4, 4))
+kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
 img_bw = cv2.dilate(img_bw, kernel, iterations = 1)
 cv2.imwrite(f'{results_path}/result2_bw.png', img_bw) # 確認用
 
 # Canny 法によるエッジ検出（下線部検出のみ）
-med_val = np.median(img_bw)
-sigma = 0.33
-min_val = int(max(0, (1.0 - sigma) * med_val))
-max_val = int(max(255, (1.0 + sigma) * med_val))
-edges = cv2.Canny(img_bw, threshold1 = min_val, threshold2 = max_val)
-print(min_val, max_val)
+edges = cv2.Laplacian(img_bw, cv2.CV_32F)
+edges = cv2.convertScaleAbs(edges)
+edges = edges * 3
+
 cv2.imwrite(f'{results_path}/result3_edges.png', edges) # 確認用
 
 # 以下、矩形領域検出
@@ -138,13 +151,13 @@ line_list = []
 same_line_error = 10 # 上下に生成される直線を同一のものと捉える誤差
 
 if lines is None:
-    print('No straight lines are detected')
+    print('Straight lines are not detected')
     sys.exit()
 else:
     for line in lines:
         tl_x, tl_y, br_x, br_y = line[0]
         # 傾き3px以内で検出対象に
-        if abs(tl_y - br_y) < 10:
+        if abs(tl_y - br_y) < 3:
             line_list.append((tl_x, tl_y, br_x, br_y))
             
     line_list = sorted(line_list, key=lambda x: x[0])
@@ -212,25 +225,6 @@ else:
             cv2.putText(img_underline, str(i), (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
 
             print('line(%d):' %i, unique_horizontal_nparray[i])
-
-
-    # # 全ての頂点を一次元配列にする
-    # all_points = np.concatenate(rects)
-
-    # # x座標とy座標を別々に取り出す
-    # x_coords = all_points[:, 0]
-    # y_coords = all_points[:, 1]
-
-    # # 最小値と最大値を求める
-    # min_x = np.min(x_coords)
-    # max_x = np.max(x_coords)
-    # min_y = np.min(y_coords)
-    # max_y = np.max(y_coords)
-        
-    # print("min_x: %d" % min_x)
-    # print("max_x: %d" % max_x)
-    # print("min_y: %d" % min_y)
-    # print("max_y: %d" % max_y)
 
     cv2.imwrite('img_underline.png', img_underline)
     
