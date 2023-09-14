@@ -2,7 +2,9 @@ import os
 import pyocr
 import pyocr.builders
 import pyocr.tesseract
+import numpy as np
 import cv2
+from pdf2image import convert_from_path
 from PIL import Image
 import sys
 from fugashi import Tagger
@@ -26,8 +28,6 @@ os.makedirs(results_path, exist_ok = True)
 os.makedirs(data_txt_path, exist_ok = True)
 os.makedirs(data_json_path, exist_ok = True)
 os.makedirs(data_csv_path, exist_ok = True)
-
-input_image = './sample/sample6.png'
  
 # 利用可能なOCRツールを取得
 tools = pyocr.get_available_tools()
@@ -41,9 +41,36 @@ if len(tools) == 0:
 
 # tools[1] へ変更を検討。結果はほぼ変更がないがやや高速。入力画像によっては少し1がよいかも？　程度
 tool = tools[0]
- 
-# 画像から文字列を取得
-img = cv2.imread(input_image)
+
+#input_image = './sample/sample6.png'
+
+input_image =  './sample/P/3．入出退健康管理簿.pdf'
+#input_image =  './sample/P/13-3-18 入出退健康管理簿（確認印欄あり）.pdf'
+#input_image =  './sample/P/20230826_富士瓦斯資料_設備保安点検01.pdf'
+
+#input_image = './sample/sample_mid.jpg'
+#input_image = './sample/P/02稟議書_/A281新卒者採用稟議書.png'
+#input_image = './sample/P/02稟議書_/A282広告出稿稟議書.png'
+#input_image = './sample/P/02稟議書_/A321稟議書.png'
+#input_image = './sample/P/02稟議書_/A438安全衛生推進者選任稟議書.png'
+#input_image = './sample/P/02稟議書_/A481広告出稿稟議書.png'
+#input_image = './sample/P/18作業報告書_/B090入庫報告書.png'
+#input_image = './sample/P/26休暇届_/A089夏季休暇届.png'
+
+if input_image.endswith('.pdf'):
+    input_image = convert_from_path(pdf_path = input_image, dpi = 300, fmt = 'png')
+    # リストから最初の画像を選択
+    input_image = input_image[0] 
+    # PIL.Image を NumPy 配列に変換
+    input_image = np.array(input_image) 
+    # RGB から BGR に色空間を変換
+    input_image = cv2.cvtColor(input_image, cv2.COLOR_RGB2BGR)
+    
+    img, out = input_image, input_image
+
+else:
+    img = cv2.imread(input_image)
+    out= cv2.imread(input_image)
 
 # BGR -> グレースケール
 img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -108,8 +135,6 @@ for i, box in enumerate(res):
     # 保存したインデックス番目の場合、誤検知とみなし、抽出対象としない。
     if not i in delete_index:
         bounding_box_result.append(box.position)
-        
-out = cv2.imread(input_image)
 
 for i, line in enumerate(text_result):
     print(f'chars[{i}] {bounding_box_result[i]} : {text_result[i]}') # 座標と文字列を出力
