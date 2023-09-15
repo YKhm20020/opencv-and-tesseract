@@ -86,7 +86,6 @@ contours, hierarchy = cv2.findContours(img_bw, cv2.RETR_TREE, cv2.CHAIN_APPROX_S
 
 # 面積でフィルタリング
 rects = []
-i = 0
 for cnt, hrchy in zip(contours, hierarchy[0]): 
     if cv2.contourArea(cnt) < 3000:
         continue  # 面積が小さいものを除外
@@ -100,12 +99,9 @@ for cnt, hrchy in zip(contours, hierarchy[0]):
     # 縦横の線のうち、どちらがの線の長さが極端に短い場合は除外
     if min(w, h) < 10:
         continue
-    if i > 100:
-        continue
     
     rect_points = cv2.boxPoints(rect).astype(int)
     rects.append(rect_points)
-    i += 1
 
 # x-y 順でソート
 rects = sorted(rects, key=lambda x: (x[0][1], x[0][0]))
