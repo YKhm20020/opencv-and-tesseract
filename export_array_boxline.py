@@ -34,7 +34,7 @@ input_image =  './sample/P/3．入出退健康管理簿.pdf'
 #input_image =  './sample/P/13-3-18 入出退健康管理簿（確認印欄あり）.pdf'
 #input_image =  './sample/P/20230826_富士瓦斯資料_設備保安点検01.pdf'
 
-#input_image = './sample/sample_mid.jpg'
+#input_image = './sample/sample.jpg'
 #input_image = './sample/P/02稟議書_/A281新卒者採用稟議書.png'
 #input_image = './sample/P/02稟議書_/A282広告出稿稟議書.png'
 #input_image = './sample/P/02稟議書_/A321稟議書.png'
@@ -63,8 +63,8 @@ img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 img_gray = cv2.GaussianBlur(img_gray, (3, 3), 0)
 
 # 第四引数が cv2.THRESH_TOZERO_INV で直線をひとつ多く検出したことを確認。他サンプルと比較必須。
-#retval, img_bw = cv2.threshold(img_gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
-retval, img_bw = cv2.threshold(img_gray, 0, 255, cv2.THRESH_TOZERO_INV + cv2.THRESH_OTSU)
+retval, img_bw = cv2.threshold(img_gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+#retval, img_bw = cv2.threshold(img_gray, 0, 255, cv2.THRESH_TOZERO_INV + cv2.THRESH_OTSU)
 
 cv2.imwrite(f'{results_path}/result1_gray.png', img_bw) # 確認用
 
@@ -119,7 +119,7 @@ for i, rect in enumerate(rects):
     cv2.drawContours(img, rects, i, color, 2)
     cv2.putText(img, str(i), tuple(rect[0]), cv2.FONT_HERSHEY_SIMPLEX, 0.8, color, 2)
     
-    print('rect(%d):\n' %i, rect_sorted)
+    print(f'rect({i}):\n{rect_sorted}')
     
 print()
 cv2.imwrite('img.png', img)
@@ -226,7 +226,7 @@ else:
             cv2.line(img_underline, (x1, y1), (x2, y2), (0, 255, 0), 2)
             cv2.putText(img_underline, str(i), (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
 
-            print('line(%d):' %i, unique_horizontal_nparray[i])
+            print(f'line({i}):\n{unique_horizontal_nparray[i]}')
 
     cv2.imwrite('img_underline.png', img_underline)
     
