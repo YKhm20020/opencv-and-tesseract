@@ -21,7 +21,7 @@ TESSDATA_PATH = os.path.join(TESSERACT_PATH, 'tessdata')
 os.environ['TESSDATA_PREFIX'] = TESSDATA_PATH
 
 # ディレクトリ作成、入力画像の決定と読み取り
-dir = ['./results', './data/txt', './data/json', './data/csv']
+dir = ['./results/OCR', './data/OCR/txt', './data/OCR/json', './data/OCR/csv']
 results_path, data_txt_path, data_json_path, data_csv_path = dir
 
 os.makedirs(results_path, exist_ok = True)
@@ -44,11 +44,11 @@ tool = tools[0]
 
 #input_image = './sample/sample6.png'
 
-input_image =  './sample/P/3．入出退健康管理簿.pdf'
+#input_image =  './sample/P/3．入出退健康管理簿.pdf'
 #input_image =  './sample/P/13-3-18 入出退健康管理簿（確認印欄あり）.pdf'
 #input_image =  './sample/P/20230826_富士瓦斯資料_設備保安点検01.pdf'
 
-#input_image = './sample/sample_mid.jpg'
+input_image = './sample/sample.png'
 #input_image = './sample/P/02稟議書_/A281新卒者採用稟議書.png'
 #input_image = './sample/P/02稟議書_/A282広告出稿稟議書.png'
 #input_image = './sample/P/02稟議書_/A321稟議書.png'
@@ -56,6 +56,8 @@ input_image =  './sample/P/3．入出退健康管理簿.pdf'
 #input_image = './sample/P/02稟議書_/A481広告出稿稟議書.png'
 #input_image = './sample/P/18作業報告書_/B090入庫報告書.png'
 #input_image = './sample/P/26休暇届_/A089夏季休暇届.png'
+
+basename = os.path.basename(input_image)
 
 if input_image.endswith('.pdf'):
     input_image = convert_from_path(pdf_path = input_image, dpi = 300, fmt = 'png')
@@ -70,12 +72,13 @@ if input_image.endswith('.pdf'):
 
 else:
     img = cv2.imread(input_image)
-    out= cv2.imread(input_image)
+    out = cv2.imread(input_image)
 
 # BGR -> グレースケール
 img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 img_gray = cv2.GaussianBlur(img_gray, (3, 3), 0)
 retval, img_bw = cv2.threshold(img_gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+cv2.imwrite(f'{results_path}/1_thresh.png', img_bw) # 確認用
 
 # 配列を画像に変換
 img_bw = Image.fromarray(img_bw)
@@ -137,31 +140,31 @@ for i, box in enumerate(res):
         bounding_box_result.append(box.position)
 
 for i, line in enumerate(text_result):
-    print(f'chars[{i}] {bounding_box_result[i]} : {text_result[i]}') # 座標と文字列を出力
+    print(f'string[{i}] {bounding_box_result[i]} : {text_result[i]}') # 座標と文字列を出力
     cv2.rectangle(out, bounding_box_result[i][0], bounding_box_result[i][1], (0, 0, 255), 1) # 検出した箇所を赤枠で囲む
     cv2.putText(out, str(i), bounding_box_result[i][0], cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2) # 番号をふる
 
 # .txt, .json, .csv ファイルで文字位置を示すバウンディングボックスの座標をエクスポート
-with open(f'{data_txt_path}/char_bounding_box_data.txt', 'w') as f:
+with open(f'{data_txt_path}/string_bounding_box_data.txt', 'w') as f:
     json.dump(bounding_box_result, f)
 
-with open(f'{data_json_path}/char_bounding_box_data.json', 'w') as f:
+with open(f'{data_json_path}/string_bounding_box_data.json', 'w') as f:
     json.dump(bounding_box_result, f)
 
-with open(f'{data_csv_path}/char_bounding_box_data.csv', 'w') as f:
+with open(f'{data_csv_path}/string_bounding_box_data.csv', 'w') as f:
     writer = csv.writer(f)
     writer.writerow(bounding_box_result)
     
 # .txt, .json, .csv ファイルで抽出した文字をエクスポート
-with open(f'{data_txt_path}/char_text_data.txt', 'w', encoding='utf_8_sig') as f:
+with open(f'{data_txt_path}/string_text_data.txt', 'w', encoding='utf_8_sig') as f:
     json.dump(text_result, f)
 
-with open(f'{data_json_path}/char_text_data.json', 'w', encoding='utf_8_sig') as f:
+with open(f'{data_json_path}/string_text_data.json', 'w', encoding='utf_8_sig') as f:
     json.dump(text_result, f)
     
-with open(f'{data_csv_path}/char_text_data.csv', 'w', encoding='utf_8_sig') as f:
+with open(f'{data_csv_path}/string_text_data.csv', 'w', encoding='utf_8_sig') as f:
     writer = csv.writer(f)
     writer.writerow(text_result)
 
 # 検出結果の画像を表示
-cv2.imwrite('img_OCR.png', out)
+cv2.imwrite(f'{results_path}/{basename}', out)

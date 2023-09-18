@@ -65,22 +65,24 @@ img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 img_gray = cv2.GaussianBlur(img_gray, (3, 3), 0)
 
 # 第四引数が cv2.THRESH_TOZERO_INV で直線をひとつ多く検出したことを確認。他サンプルと比較必須。
-retval, img_bw = cv2.threshold(img_gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
-#retval, img_bw = cv2.threshold(img_gray, 0, 255, cv2.THRESH_TOZERO_INV + cv2.THRESH_OTSU)
+#retval, img_bw = cv2.threshold(img_gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+retval, img_bw = cv2.threshold(img_gray, 0, 255, cv2.THRESH_TOZERO_INV + cv2.THRESH_OTSU)
 
-cv2.imwrite(f'{results_path}/result1_thresh.png', img_bw) # 確認用
+cv2.imwrite(f'{results_path}/1_thresh.png', img_bw) # 確認用
 
 # 膨張処理
 kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
 img_bw = cv2.dilate(img_bw, kernel, iterations = 1)
-cv2.imwrite(f'{results_path}/result2_dilate.png', img_bw) # 確認用
+cv2.imwrite(f'{results_path}/2_dilate.png', img_bw) # 確認用
 
 # Canny 法によるエッジ検出（下線部検出のみ）
-edges = cv2.Laplacian(img_bw, cv2.CV_32F)
-edges = cv2.convertScaleAbs(edges)
-edges = edges * 3
+med_val = np.median(img_bw)
+sigma = 0.33
+min_val = int(max(0, (1.0 - sigma) * med_val))
+max_val = int(max(255, (1.0 + sigma) * med_val))
+img_edges = cv2.Canny(img_bw, threshold1 = min_val, threshold2 = max_val, apertureSize=5, L2gradient=True)
 
-cv2.imwrite(f'{results_path}/result3_edges.png', edges) # 確認用
+cv2.imwrite(f'{results_path}/3_edges.png', img_edges) # 確認用
 
 # 以下、矩形領域検出
 # 輪郭抽出
@@ -124,7 +126,7 @@ for i, rect in enumerate(rects):
     print(f'rect({i}):\n{rect_sorted}')
     
 print()
-cv2.imwrite(f'{results_path}/{basename}', img)
+cv2.imwrite(f'{results_path}/rects_{basename}', img)
 
 rect_sorted_memory = np.array(rect_sorted_memory)
 rect_sorted_list = rect_sorted_memory.tolist()
@@ -149,7 +151,7 @@ min_length = width * 0.1
 
 # ハフ変換による直線検出
 lines = []
-lines = cv2.HoughLinesP(edges, rho=1, theta=np.pi/360, threshold=int(retval), minLineLength=min_length, maxLineGap=1)
+lines = cv2.HoughLinesP(img_edges, rho=1, theta=np.pi/360, threshold=int(retval), minLineLength=min_length, maxLineGap=1)
 
 line_list = []
 same_line_error = 10 # 上下に生成される直線を同一のものと捉える誤差
@@ -196,7 +198,7 @@ else:
 
     # 重複する水平線のインデックスを保存するリスト
     overlap_index = []
-    rect_error = 10 # 検知した直線を矩形の一部と捉える誤差
+    rect_error = 20 # 検知した直線を矩形の一部と捉える誤差
     
     for i in range(rect_sorted_memory.shape[0]):
         for j, line in enumerate(line_nparray):
@@ -230,7 +232,7 @@ else:
 
             print(f'line({i}):\n{unique_horizontal_nparray[i]}')
 
-    cv2.imwrite('img_underline.png', img_underline)
+    cv2.imwrite(f'{results_path}/underline_{basename}', img_underline)
     
     unique_horizontal_list = unique_horizontal_nparray.tolist()
     

@@ -74,7 +74,7 @@ res_txt = res_txt.replace('\n\n', '\n') # 余分な改行を削除
 lines = res_txt.split('\n') # 改行で分割
 
 for i, line in enumerate(lines):
-    print(f'chars[{i}] {res[i].position} : {line}') # 座標と文字列を出力
+    print(f'string[{i}] {res[i].position} : {line}') # 座標と文字列を出力
     text_result.append(line)
     cv2.putText(out, str(i), res[i].position[0], cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
  
