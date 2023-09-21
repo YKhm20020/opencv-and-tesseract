@@ -44,11 +44,11 @@ tool = tools[0]
 
 #input_image = './sample/sample6.png'
 
-#input_image =  './sample/P/3．入出退健康管理簿.pdf'
+input_image =  './sample/P/3．入出退健康管理簿.pdf'
 #input_image =  './sample/P/13-3-18 入出退健康管理簿（確認印欄あり）.pdf'
 #input_image =  './sample/P/20230826_富士瓦斯資料_設備保安点検01.pdf'
 
-input_image = './sample/sample.png'
+#input_image = './sample/sample.png'
 #input_image = './sample/P/02稟議書_/A281新卒者採用稟議書.png'
 #input_image = './sample/P/02稟議書_/A282広告出稿稟議書.png'
 #input_image = './sample/P/02稟議書_/A321稟議書.png'
@@ -57,7 +57,7 @@ input_image = './sample/sample.png'
 #input_image = './sample/P/18作業報告書_/B090入庫報告書.png'
 #input_image = './sample/P/26休暇届_/A089夏季休暇届.png'
 
-basename = os.path.basename(input_image)
+filename = os.path.splitext(os.path.basename(input_image))[0]
 
 if input_image.endswith('.pdf'):
     input_image = convert_from_path(pdf_path = input_image, dpi = 300, fmt = 'png')
@@ -167,4 +167,4 @@ with open(f'{data_csv_path}/string_text_data.csv', 'w', encoding='utf_8_sig') as
     writer.writerow(text_result)
 
 # 検出結果の画像を表示
-cv2.imwrite(f'{results_path}/{basename}', out)
+cv2.imwrite(f'{results_path}/OCR_{filename}.png', out)

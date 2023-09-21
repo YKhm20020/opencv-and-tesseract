@@ -93,7 +93,7 @@ for i, line in enumerate(lines):
             label = labels[j]
             break
         
-    print(f'chars[{i}]({label}) {res[i].position} : {line}') # 座標と文字列を出力
+    print(f'string[{i}]({label}) {res[i].position} : {line}') # 座標と文字列を出力
     text_result.append(line)
  
 # 検出結果の画像を表示
