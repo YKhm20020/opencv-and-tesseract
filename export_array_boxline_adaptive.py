@@ -164,90 +164,90 @@ same_line_error = 10 # 上下に生成される直線を同一のものと捉え
 if lines is None:
     print('Straight lines are not detected')
     sys.exit()
+
+for line in lines:
+    tl_x, tl_y, br_x, br_y = line[0]
+    # 傾き3px以内で検出対象に
+    if abs(tl_y - br_y) < 3:
+        line_list.append((tl_x, tl_y, br_x, br_y))
+        
+line_list = sorted(line_list, key=lambda x: x[0])
+
+line_mean_list = []
+# line_list から処理済みの要素を削除するためにコピーを作る
+line_list_copy = line_list.copy()
+
+# line_list_copy が空になるまでループ
+while line_list_copy:
+    # line_list_copy から最初の要素を取り出す
+    left_x1, left_y1, right_x1, right_y1 = line_list_copy.pop(0)
+    tmp_list = [(left_x1, left_y1, right_x1, right_y1)]
+    
+    # line_list_copy から他の要素を順番に取り出す
+    for left_x2, left_y2, right_x2, right_y2 in line_list_copy:
+        # 誤差の範囲内であれば、一時保存リストに追加する
+        if abs(left_y1 - left_y2) <= same_line_error and abs(left_x1 - left_x2) <= same_line_error:
+            tmp_list.append((left_x2, left_y2, right_x2, right_y2))
+            
+    # 一時保存リストから各座標ごとに平均値を計算する
+    mean_left_x, mean_left_y, mean_right_x, mean_right_y = [np.mean([x[i] for x in tmp_list]) for i in range(4)]
+    new_line = (int(mean_left_x), int(mean_left_y), int(mean_right_x), int(mean_right_y))
+    line_mean_list.append(new_line)
+    
+    # 一時保存リストに含まれる要素を line_list_copy から削除する
+    for line in tmp_list:
+        if line in line_list_copy:
+            line_list_copy.remove(line)
+
+line_nparray = np.array(line_mean_list)
+
+# 重複する水平線のインデックスを保存するリスト
+overlap_index = []
+rect_error = 20 # 検知した直線を矩形の一部と捉える誤差
+
+for i in range(rect_sorted_memory.shape[0]):
+    for j, line in enumerate(line_nparray):
+        is_underline = True
+        line_mid_x = (line_nparray[j][0] + line_nparray[j][2]) / 2
+        line_mid_y = (line_nparray[j][1] + line_nparray[j][3]) / 2
+        
+        # 水平線の中点の座標を確認。矩形の上辺について、x座標は両端の間で、かつy座標が誤差範囲か
+        if ( (rect_sorted_memory[i][0][0] - rect_error <= line_mid_x <= rect_sorted_memory[i][3][0] + rect_error)
+            and ( (rect_sorted_memory[i][0][1] - rect_error <= line_mid_y <= rect_sorted_memory[i][0][1] + rect_error)
+            or (rect_sorted_memory[i][3][1] - rect_error <= line_mid_y <= rect_sorted_memory[i][3][1] + rect_error) ) ):
+            overlap_index.append(j)
+
+        # 水平線の中点の座標を確認。矩形の下辺について、x座標は両端の間で、かつy座標が誤差範囲か
+        if ( (rect_sorted_memory[i][1][0] - rect_error <= line_mid_x <= rect_sorted_memory[i][2][0] + rect_error)
+            and ( (rect_sorted_memory[i][1][1] - rect_error <= line_mid_y <= rect_sorted_memory[i][1][1] + rect_error)
+            or (rect_sorted_memory[i][2][1] - rect_error <= line_mid_y <= rect_sorted_memory[i][2][1] + rect_error) ) ):
+            overlap_index.append(j)
+
+# 重複する水平線のインデックスを参照し、ndarray 配列から削除               
+unique_horizontal_nparray = np.delete(line_nparray, overlap_index, 0)
+
+# 矩形領域と重複しない水平線の座標を表示する
+if unique_horizontal_nparray.shape[0] == 0:
+    print('Underlines are not detected')
 else:
-    for line in lines:
-        tl_x, tl_y, br_x, br_y = line[0]
-        # 傾き3px以内で検出対象に
-        if abs(tl_y - br_y) < 3:
-            line_list.append((tl_x, tl_y, br_x, br_y))
-            
-    line_list = sorted(line_list, key=lambda x: x[0])
+    for i, line in enumerate(unique_horizontal_nparray):
+        x1, y1, x2, y2 = unique_horizontal_nparray[i]
+        cv2.line(img_underline, (x1, y1), (x2, y2), (0, 255, 0), 2)
+        cv2.putText(img_underline, str(i), (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
+
+        print(f'line({i}):\n{unique_horizontal_nparray[i]}')
+
+cv2.imwrite(f'{results_path}/underline_{filename}.png', img_underline)
+
+unique_horizontal_list = unique_horizontal_nparray.tolist()
+
+# .txt, .json, .csv ファイルで下線の座標をエクスポート
+with open(f'{data_txt_path}/underlines_data.txt', 'w') as f:
+    json.dump(unique_horizontal_list, f)
+
+with open(f'{data_json_path}/underlines_data.json', 'w') as f:
+    json.dump(unique_horizontal_list, f)
     
-    line_mean_list = []
-    # line_list から処理済みの要素を削除するためにコピーを作る
-    line_list_copy = line_list.copy()
-    
-    # line_list_copy が空になるまでループ
-    while line_list_copy:
-        # line_list_copy から最初の要素を取り出す
-        left_x1, left_y1, right_x1, right_y1 = line_list_copy.pop(0)
-        tmp_list = [(left_x1, left_y1, right_x1, right_y1)]
-        
-        # line_list_copy から他の要素を順番に取り出す
-        for left_x2, left_y2, right_x2, right_y2 in line_list_copy:
-            # 誤差の範囲内であれば、一時保存リストに追加する
-            if abs(left_y1 - left_y2) <= same_line_error and abs(left_x1 - left_x2) <= same_line_error:
-                tmp_list.append((left_x2, left_y2, right_x2, right_y2))
-                
-        # 一時保存リストから各座標ごとに平均値を計算する
-        mean_left_x, mean_left_y, mean_right_x, mean_right_y = [np.mean([x[i] for x in tmp_list]) for i in range(4)]
-        new_line = (int(mean_left_x), int(mean_left_y), int(mean_right_x), int(mean_right_y))
-        line_mean_list.append(new_line)
-        
-        # 一時保存リストに含まれる要素を line_list_copy から削除する
-        for line in tmp_list:
-            if line in line_list_copy:
-                line_list_copy.remove(line)
-
-    line_nparray = np.array(line_mean_list)
-
-    # 重複する水平線のインデックスを保存するリスト
-    overlap_index = []
-    rect_error = 20 # 検知した直線を矩形の一部と捉える誤差
-    
-    for i in range(rect_sorted_memory.shape[0]):
-        for j, line in enumerate(line_nparray):
-            is_underline = True
-            line_mid_x = (line_nparray[j][0] + line_nparray[j][2]) / 2
-            line_mid_y = (line_nparray[j][1] + line_nparray[j][3]) / 2
-            
-            # 水平線の中点の座標を確認。矩形の上辺について、x座標は両端の間で、かつy座標が誤差範囲か
-            if ( (rect_sorted_memory[i][0][0] - rect_error <= line_mid_x <= rect_sorted_memory[i][3][0] + rect_error)
-                and ( (rect_sorted_memory[i][0][1] - rect_error <= line_mid_y <= rect_sorted_memory[i][0][1] + rect_error)
-                or (rect_sorted_memory[i][3][1] - rect_error <= line_mid_y <= rect_sorted_memory[i][3][1] + rect_error) ) ):
-                overlap_index.append(j)
-
-            # 水平線の中点の座標を確認。矩形の下辺について、x座標は両端の間で、かつy座標が誤差範囲か
-            if ( (rect_sorted_memory[i][1][0] - rect_error <= line_mid_x <= rect_sorted_memory[i][2][0] + rect_error)
-                and ( (rect_sorted_memory[i][1][1] - rect_error <= line_mid_y <= rect_sorted_memory[i][1][1] + rect_error)
-                or (rect_sorted_memory[i][2][1] - rect_error <= line_mid_y <= rect_sorted_memory[i][2][1] + rect_error) ) ):
-                overlap_index.append(j)
-    
-    # 重複する水平線のインデックスを参照し、ndarray 配列から削除               
-    unique_horizontal_nparray = np.delete(line_nparray, overlap_index, 0)
-
-    # 矩形領域と重複しない水平線の座標を表示する
-    if unique_horizontal_nparray.shape[0] == 0:
-        print('Underlines are not detected')
-    else:
-        for i, line in enumerate(unique_horizontal_nparray):
-            x1, y1, x2, y2 = unique_horizontal_nparray[i]
-            cv2.line(img_underline, (x1, y1), (x2, y2), (0, 255, 0), 2)
-            cv2.putText(img_underline, str(i), (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
-
-            print(f'line({i}):\n{unique_horizontal_nparray[i]}')
-
-    cv2.imwrite(f'{results_path}/underline_{filename}.png', img_underline)
-    
-    unique_horizontal_list = unique_horizontal_nparray.tolist()
-    
-    # .txt, .json, .csv ファイルで下線の座標をエクスポート
-    with open(f'{data_txt_path}/underlines_data.txt', 'w') as f:
-        json.dump(unique_horizontal_list, f)
-
-    with open(f'{data_json_path}/underlines_data.json', 'w') as f:
-        json.dump(unique_horizontal_list, f)
-        
-    with open(f'{data_csv_path}/underlines_data.csv', 'w') as f:
-        writer = csv.writer(f)
-        writer.writerow(unique_horizontal_list)
+with open(f'{data_csv_path}/underlines_data.csv', 'w') as f:
+    writer = csv.writer(f)
+    writer.writerow(unique_horizontal_list)

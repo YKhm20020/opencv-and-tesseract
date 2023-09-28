@@ -61,3 +61,16 @@ RUN pip install replicate
 
 RUN pip install llama-cpp-python
 RUN pip install --force-reinstall --ignore-installed --no-cache-dir llama-cpp-python==0.1.65
+
+# for DeblurGANv2
+RUN pip install torch>=1.0.1
+RUN pip install torchvision
+RUN pip install torchsummary
+RUN pip install pretrainedmodels
+RUN pip install joblib
+RUN pip install albumentations>=1.0.0
+RUN pip install scikit-image==0.18.1
+RUN pip install tqdm
+RUN pip install glog
+RUN pip install tensorboardx
+RUN pip install fire
