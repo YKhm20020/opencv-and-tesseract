@@ -1,7 +1,7 @@
 from llama_cpp import Llama
 
 # プロンプトを記入
-prompt = """Which of the following is the label of "年月日" in Japanese: date, integer, string, single selection or multiple selection? Choose only these 5 words."
+prompt = """Which of the following is the label of "年月日" in Japanese: date, number, string, single selection or multiple selection? Choose only these 5 words."
 Assistant:"""
 
 # ダウンロードしたModelをセット
