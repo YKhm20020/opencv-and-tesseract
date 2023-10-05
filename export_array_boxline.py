@@ -64,6 +64,7 @@ else:
 # BGR -> グレースケール
 img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 img_gray = cv2.GaussianBlur(img_gray, (3, 3), 0)
+cv2.imwrite(f'{results_path}/0_gray.png', img_gray) # 確認用
 
 # 第四引数が cv2.THRESH_TOZERO_INV で直線をひとつ多く検出したことを確認。他サンプルと比較必須。
 #retval, img_bw = cv2.threshold(img_gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
@@ -128,6 +129,7 @@ for i, rect in enumerate(rects):
     
 print()
 cv2.imwrite(f'{results_path}/rects_{filename}.png', img)
+cv2.imwrite('img.png', img) # 確認用
 
 rect_sorted_memory = np.array(rect_sorted_memory)
 rect_sorted_list = rect_sorted_memory.tolist()
@@ -234,6 +236,7 @@ else:
             print(f'line({i}):\n{unique_horizontal_nparray[i]}')
 
     cv2.imwrite(f'{results_path}/underline_{filename}.png', img_underline)
+    cv2.imwrite('img_underline.png', img_underline) # 確認用
     
     unique_horizontal_list = unique_horizontal_nparray.tolist()
     
