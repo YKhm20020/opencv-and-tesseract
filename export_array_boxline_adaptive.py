@@ -30,11 +30,11 @@ os.makedirs(data_txt_path, exist_ok = True)
 os.makedirs(data_json_path, exist_ok = True)
 os.makedirs(data_csv_path, exist_ok = True)
 
-input_image =  './sample/P/3．入出退健康管理簿.pdf'
+#input_image =  './sample/P/3．入出退健康管理簿.pdf'
 #input_image =  './sample/P/13-3-18 入出退健康管理簿（確認印欄あり）.pdf'
 #input_image =  './sample/P/20230826_富士瓦斯資料_設備保安点検01.pdf'
 
-#input_image = './sample/sample.jpg'
+input_image = './sample/sample.png'
 #input_image = './sample/P/02稟議書_/A281新卒者採用稟議書.png'
 #input_image = './sample/P/02稟議書_/A282広告出稿稟議書.png'
 #input_image = './sample/P/02稟議書_/A321稟議書.png'
