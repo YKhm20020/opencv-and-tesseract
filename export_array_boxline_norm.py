@@ -70,7 +70,7 @@ result_norm_planes = []
 for plane in rgb_planes:
     dilated_img = cv2.dilate(plane, np.ones((7,7), np.uint8))
     bg_img = cv2.medianBlur(dilated_img, 21)
-    diff_img = 255 - cv2.absdiff(plane, bg_img)
+    diff_img = 255 - cv2.absdiff(plane, dilated_img)
     norm_img = cv2.normalize(diff_img,None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8UC1)
     result_planes.append(diff_img)
     result_norm_planes.append(norm_img)
@@ -110,7 +110,7 @@ cv2.imwrite(f'{results_path}/3_edges.png', img_edges) # 確認用
 
 # 以下、矩形領域検出
 # 輪郭抽出
-contours, hierarchy = cv2.findContours(img_bw, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+contours, hierarchy = cv2.findContours(img_edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
 # 面積でフィルタリング
 rects = []

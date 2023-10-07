@@ -42,9 +42,9 @@ if len(tools) == 0:
 # tools[1] へ変更を検討。結果はほぼ変更がないがやや高速。入力画像によっては少し1がよいかも？　程度
 tool = tools[0]
 
-input_image = './sample/sample.png'
+#input_image = './sample/sample.png'
 
-#input_image =  './sample/P/3．入出退健康管理簿.pdf'
+input_image =  './sample/P/3．入出退健康管理簿.pdf'
 #input_image =  './sample/P/13-3-18 入出退健康管理簿（確認印欄あり）.pdf'
 #input_image =  './sample/P/20230826_富士瓦斯資料_設備保安点検01.pdf'
 
@@ -77,7 +77,7 @@ else:
 # BGR -> グレースケール
 img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 img_gray = cv2.GaussianBlur(img_gray, (3, 3), 0)
-retval, img_bw = cv2.threshold(img_gray, 0, 255, cv2.THRESH_TRIANGLE + cv2.THRESH_OTSU)
+retval, img_bw = cv2.threshold(img_gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
 cv2.imwrite(f'{results_path}/1_thresh.png', img_bw) # 確認用
 
 # kernel = np.ones((2, 2))
