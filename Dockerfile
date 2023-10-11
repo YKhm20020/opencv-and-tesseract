@@ -48,7 +48,7 @@ RUN apt remove -y python3-blinker
 RUN pip install paddleocr
 # Python のバージョンを変更した場合は paddlepaddle の対応バージョンも確認して合わせる
 # 以下リンクから Python のバージョンと合わせる https://www.paddlepaddle.org.cn/en/install/quick?docurl=/documentation/docs/en/install/pip/windows-pip_en.html
-RUN python3 -m pip install paddlepaddle==2.4.1 -i https://pypi.tuna.tsinghua.edu.cn/simple
+# RUN python3 -m pip install paddlepaddle==2.4.1 -i https://pypi.tuna.tsinghua.edu.cn/simple
 RUN pip install pyinstaller
 RUN pip install loguru
 
@@ -69,7 +69,7 @@ RUN pip install torchsummary
 RUN pip install pretrainedmodels
 RUN pip install joblib
 RUN pip install albumentations>=1.0.0
-RUN pip install scikit-image==0.18.1
+RUN pip install scikit-image==0.19
 RUN pip install tqdm
 RUN pip install glog
 RUN pip install tensorboardx

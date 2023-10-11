@@ -31,3 +31,5 @@ Llama/models/*
 
 # Llama2 の APIキーを保存した .env ファイル
 /.env
+
+.DS_Store
