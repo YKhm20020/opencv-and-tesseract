@@ -1,6 +1,8 @@
-FROM ubuntu:latest
+FROM nvidia/cuda:11.8.0-cudnn8-devel-ubuntu22.04
+LABEL maintainer="mshinoda"
+RUN apt-get update
 
-# Python 3.7.1 から 3.10 にテストで移行予定
+# Python 3.7.1 から 3.10 に移行予定
 ENV PYTHON_VERSION 3.10
 ENV HOME /root
 ENV PYTHON_ROOT $HOME/local/python-$PYTHON_VERSION
@@ -12,6 +14,8 @@ RUN ln -sf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime
 
 # apt
 RUN apt update
+RUN apt-get install -y curl
+RUN apt-get update
 RUN apt install -y libopencv-dev
 RUN apt install -y tesseract-ocr
 RUN apt install -y libtesseract-dev
@@ -33,6 +37,16 @@ RUN python3 -m pip install --upgrade pip setuptools
 # set working directory and copy files
 WORKDIR /usr/src/app
 COPY ./ /usr/src/app
+
+# install the NVIDIA Container Toolkit
+RUN distribution=$(. /etc/os-release;echo $ID$VERSION_ID) \
+    && curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg \
+    && curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
+    sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
+    tee /etc/apt/sources.list.d/nvidia-container-toolkit.list \
+    && \
+    apt-get update
+RUN apt-get install -y nvidia-container-toolkit
 
 # install opencv
 RUN pip install opencv-python

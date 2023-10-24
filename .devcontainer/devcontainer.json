@@ -26,5 +26,6 @@
 		}
 	},
 	// Uncomment to connect as an existing user other than the container default. More info: https://aka.ms/dev-containers-non-root.
+	"runArgs":["--gpus","all","--shm-size","8gb"],
 	// "remoteUser": "devcontainer"
 }
