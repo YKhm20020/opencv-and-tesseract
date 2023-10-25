@@ -294,6 +294,7 @@ def find_underlines(img_edges, img_underline, rect_sorted_memory, retval, filena
         # 矩形領域と重複しない水平線の座標を表示する
         if unique_horizontal_nparray.shape[0] == 0:
             print('Underlines are not detected')
+            sys.exit()
         else:
             for i, line in enumerate(unique_horizontal_nparray):
                 x1, y1, x2, y2 = unique_horizontal_nparray[i]
@@ -309,7 +310,7 @@ def find_underlines(img_edges, img_underline, rect_sorted_memory, retval, filena
         unique_horizontal_list = unique_horizontal_nparray.tolist()
         
         # .txt, .json, .csv ファイルで下線部領域の座標をエクスポート
-        output_path = './data/rects'
+        output_path = './data/underlines'
         data_txt_path = os.path.join(output_path, 'txt')
         data_json_path = os.path.join(output_path, 'json')
         data_csv_path = os.path.join(output_path, 'csv')
