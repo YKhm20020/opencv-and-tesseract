@@ -45,7 +45,7 @@ def load_image(input_path):
     else:
         img_original = cv2.imread(input_path)
         img_rects = cv2.imread(input_path)
-        img_underlines = cv2.imread(input_image)
+        img_underlines = cv2.imread(input_path)
 
     return img_original, img_rects, img_underlines
 
@@ -326,11 +326,11 @@ def main():
     # ディレクトリ作成、入力画像の決定と読み取り
     create_directories()
 
-    input_path =  './sample/P/3．入出退健康管理簿.pdf'
+    # input_path =  './sample/P/3．入出退健康管理簿.pdf'
     #input_path =  './sample/P/13-3-18 入出退健康管理簿（確認印欄あり）.pdf'
     #input_path =  './sample/P/20230826_富士瓦斯資料_設備保安点検01.pdf'
 
-    #input_path = './sample/sample.jpg'
+    input_path = './sample/deblur_sample3.png'
     #input_path = './sample/P/02稟議書_/A281新卒者採用稟議書.png'
     #input_path = './sample/P/02稟議書_/A282広告出稿稟議書.png'
     #input_path = './sample/P/02稟議書_/A321稟議書.png'
