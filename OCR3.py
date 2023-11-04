@@ -164,24 +164,33 @@ def find_text_and_bounding_box(img_bw, img_OCR, filename):
         result = tagger.parse(text[i])
         
         # 形態素解析によって誤検知を排除
-        parts, count_symbol = 0, 0
-        for parts, word in enumerate(tagger(text[i])): 
+        parts, count_symbol = 0, 0 # 形態素数と誤検知と認識した数
+        for word in tagger(text[i]): 
             if word.feature.lemma in text_black_list or word.pos in pos_black_list:
                 count_symbol += 1
             if word.feature.lemma in text_white_list:
                 count_symbol -= 1
+            parts += 1
             #print(word, word.feature.lemma, word.pos, sep='\t')  # 形態素解析確認用
         
         # 一定割合以上が不要な品詞である場合、インデックスを保存。
-        if count_symbol <= parts * 0.5 or (parts == 1 and count_symbol == parts):
-            text_result.append(line)
-        else:
+        if count_symbol >= parts * 0.5 or (parts == 1 and count_symbol == 1):
             delete_index.append(i)
-        
+            print(f"{parts}, {count_symbol}")
+            print("deleted")
+    
     for i, box in enumerate(res):
-        # 保存したインデックス番目の場合、誤検知とみなし、抽出対象としない。
-        if not i in delete_index:
-            bounding_box_result.append(box.position)
+        box_w = box.position[1][0] - box.position[0][0]  # 右下の座標
+        box_h = box.position[1][1] - box.position[0][1]
+        box_area = box_w * box_h
+
+        # 面積が一定以上の場合、インデックスを保存
+        if box_area > 300000:
+            delete_index.append(i)
+
+    # 保存したインデックス番目のテキストと座標を削除
+    text_result = [splitted_txt[i] for i in range(len(splitted_txt)) if i not in delete_index]
+    bounding_box_result = [res[i].position for i in range(len(res)) if i not in delete_index]
 
     for i, line in enumerate(text_result):
         print(f'string[{i}] {bounding_box_result[i]} : {text_result[i]}') # 座標と文字列を出力
