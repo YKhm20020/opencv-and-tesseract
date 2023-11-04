@@ -338,6 +338,11 @@ def main():
     #input_path = './sample/P/02稟議書_/A481広告出稿稟議書.png'
     #input_path = './sample/P/18作業報告書_/B090入庫報告書.png'
     #input_path = './sample/P/26休暇届_/A089夏季休暇届.png'
+    
+    # ファイルが存在しない場合、プログラムを終了する
+    if not os.path.exists(input_path):
+        print(f"Error: The file '{input_path}' does not exist.")
+        return
 
     filename = os.path.splitext(os.path.basename(input_path))[0]
 
@@ -346,8 +351,8 @@ def main():
 
     # 画像処理と領域取得
     image_bw, image_edges, retval = process_image(image_original)
-    rect_sorted_memory = find_rectangles(image_bw, image_rects, filename)
-    find_underlines(image_edges, image_underline, rect_sorted_memory, retval, filename)
+    rect_coords = find_rectangles(image_bw, image_rects, filename)
+    find_underlines(image_edges, image_underline, rect_coords, retval, filename)
 
 if __name__ == "__main__":
     main()
