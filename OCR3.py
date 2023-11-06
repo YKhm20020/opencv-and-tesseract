@@ -176,16 +176,18 @@ def find_text_and_bounding_box(img_bw, img_OCR, filename):
         # 一定割合以上が不要な品詞である場合、インデックスを保存。
         if count_symbol >= parts * 0.5 or (parts == 1 and count_symbol == 1):
             delete_index.append(i)
-            print(f"{parts}, {count_symbol}")
-            print("deleted")
     
     for i, box in enumerate(res):
-        box_w = box.position[1][0] - box.position[0][0]  # 右下の座標
-        box_h = box.position[1][1] - box.position[0][1]
+        box_w = box.position[1][0] - box.position[0][0] # バウンディングボックスの幅
+        box_h = box.position[1][1] - box.position[0][1] # バウンディングボックスの高さ
         box_area = box_w * box_h
 
         # 面積が一定以上の場合、インデックスを保存
         if box_area > 300000:
+            delete_index.append(i)
+        
+        # 面積が一定以下の場合、インデックスを保存
+        if box_area < 1000:
             delete_index.append(i)
 
     # 保存したインデックス番目のテキストと座標を削除
@@ -207,9 +209,6 @@ def find_text_and_bounding_box(img_bw, img_OCR, filename):
 
 def main():
     
-    # ディレクトリ作成、入力画像の決定と読み取り
-    create_directories()
-
     # インストール済みのTesseractへパスを通す
     TESSERACT_PATH = os.path.abspath('TESSERACT-OCR')
     if TESSERACT_PATH not in os.environ['PATH'].split(os.pathsep):
@@ -217,9 +216,12 @@ def main():
 
     TESSDATA_PATH = os.path.join(TESSERACT_PATH, 'tessdata')
     os.environ['TESSDATA_PREFIX'] = TESSDATA_PATH
+    
+    # ディレクトリ作成、入力画像の決定と読み取り
+    create_directories()
 
     #input_path = './sample/sample6.png'
-    input_path = './sample/deblur_sample.png'
+    input_path = './sample/blur_sample3.png'
 
     #input_path =  './sample/P/3．入出退健康管理簿.pdf'
     #input_path =  './sample/P/13-3-18 入出退健康管理簿（確認印欄あり）.pdf'
