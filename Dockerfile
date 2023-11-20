@@ -74,7 +74,11 @@ RUN python3 -m unidic download
 RUN pip install replicate
 
 RUN pip install llama-cpp-python
-RUN pip install --force-reinstall --ignore-installed --no-cache-dir llama-cpp-python==0.1.65
+RUN pip install llama-cpp-python --force-reinstall --upgrade --no-cache-dir -vv
+
+# install for using youri-7B
+RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+RUN pip install auto-gptq --extra-index-url https://huggingface.github.io/autogptq-index/whl/cu118/
 
 # for DeblurGANv2
 RUN pip install torch>=1.0.1
