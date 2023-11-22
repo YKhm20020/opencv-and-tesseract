@@ -3,9 +3,20 @@ from PIL import Image
 import torch
 from transformers import AutoTokenizer
 from auto_gptq import AutoGPTQForCausalLM
+from tqdm import tqdm
 from OCR3 import load_image, process_image, find_text_and_bounding_box, export_data
 
 def predict_attribute(tokenizer, model, text):
+    """ 
+    抽出文字の属性を推測する関数
+        Args:
+            tokenizer: トークナイザー
+            model: モデル
+            text: 抽出文字を格納したリスト
+        
+        Returns:
+            output (str): 推測した属性
+    """
     # プロンプトの記述
     instruction = "書類の項目として、記入欄がどのデータ型にあたるかを選択してください。期間や期限は日付、名前や住所は文字列、経費や金額や個数は数値のように答えてください。"
     input = f"「{text}」という欄がどのデータ型に該当するかを、日付、文字列、数値、単一選択、複数選択の中から最も適切なものを選んでください。"
@@ -45,8 +56,8 @@ def predict_attribute(tokenizer, model, text):
 
     output = tokenizer.decode(output_ids.tolist()[0])
     output = output.replace("</s>", "")
-    print(output)
     output = output.split("システム: ")[1]
+    print(output)
     
     return output
 
@@ -81,7 +92,7 @@ def main():
     model = AutoGPTQForCausalLM.from_quantized("rinna/youri-7b-chat-gptq", use_safetensors=True)
     
     attributes = []
-    for i in range(len(text)):
+    for i in tqdm(range(len(text))):
         att = predict_attribute(tokenizer, model, text[i])
         attributes.append(att)
         

@@ -6,10 +6,11 @@ import numpy as np
 import json
 import csv
 
-""" 
-create_directories: 各ディレクトリを作成する関数
-"""
+
 def create_directories():
+    """ 
+    各ディレクトリを作成する関数
+    """
     os.makedirs('./results/rects', exist_ok = True)
     os.makedirs('./results/underlines', exist_ok=True)
     os.makedirs('./data/rects/txt', exist_ok=True)
@@ -20,17 +21,18 @@ def create_directories():
     os.makedirs('./data/underlines/csv', exist_ok=True)
 
 
-""" 
-load_image: 入力画像を読み込む関数（画像とPDFの入力に対応）
-    Args:
-        input_path: 入力のパス
 
-    return:
-        img_original: 画像化した入力
-        img_rects: img_original をコピーした、矩形領域を描画する画像
-        img_underlines: img_original をコピーした、下線部領域を描画する画像
-"""
 def load_image(input_path):
+    """ 
+    入力画像を読み込む関数（画像とPDFの入力に対応）
+        Args:
+            input_path (str): 入力のパス
+
+        Returns:
+            img_original: 画像化した入力
+            img_rects: img_original をコピーした、矩形領域を描画する画像
+            img_underlines: img_original をコピーした、下線部領域を描画する画像
+    """
     if input_path.endswith('.pdf'):
         images = convert_from_path(pdf_path=input_path, dpi=300, fmt='png')
         # リストから最初の画像を選択
@@ -50,17 +52,18 @@ def load_image(input_path):
     return img_original, img_rects, img_underlines
 
 
-""" 
-process_image: 画像処理を行う関数
-    Args:
-        input_img: 入力画像
 
-    return:
-        img_bw: 膨張処理後の画像
-        img_edges: エッジ検出後の画像
-        retval: 二値化で決定した閾値
-"""
 def process_image(input_img):
+    """ 
+    画像処理を行う関数
+        Args:
+            input_img (str): 入力画像
+
+        Returns:
+            img_bw: 膨張処理後の画像
+            img_edges: エッジ検出後の画像
+            retval (int): 二値化で決定した閾値
+    """
     img = input_img.copy()
     
     results_path = './results/rects'
@@ -91,18 +94,19 @@ def process_image(input_img):
     return img_bw, img_edges, retval
 
 
-""" 
-sort_points: 頂点を左上、左下、右下、右上の順序に並び替える関数
-    Args:
-        points: 矩形領域の座標を格納したリスト
-        
-    return:
-        tl : top left (左上) の点の座標
-        tr : top right (右上) の点の座標
-        br : bottom right (右下) の点の座標
-        bl : bottom left (左下) の点の座標
-"""
+
 def sort_points(points):
+    """ 
+    頂点を左上、左下、右下、右上の順序に並び替える関数
+        Args:
+            points: 矩形領域の座標を格納したリスト
+            
+        Returns:
+            tl : top left (左上) の点の座標
+            tr : top right (右上) の点の座標
+            br : bottom right (右下) の点の座標
+            bl : bottom left (左下) の点の座標
+    """
     # x座標とy座標の和が最小のものが左上
     tl = min(points, key=lambda x: x[0] + x[1])
     # x座標とy座標の差が最小のものが右上
@@ -115,14 +119,15 @@ def sort_points(points):
     return [tl, tr, br, bl]
 
 
-""" 
-export_data: 検出した領域の座標をファイルとしてエクスポートする関数
-    Args:
-        data: 領域の座標を格納したリスト
-        file_path: エクスポートするファイルのパス
-        file_format: エクスポートするファイルの拡張子
-"""
+
 def export_data(data, file_path, file_format):
+    """ 
+    検出した領域の座標をファイルとしてエクスポートする関数
+        Args:
+            data: 領域の座標を格納したリスト
+            file_path: エクスポートするファイルのパス
+            file_format: エクスポートするファイルの拡張子
+    """
     if file_format == 'txt':
         with open(file_path, 'w') as f:
             json.dump(data, f)
@@ -135,17 +140,18 @@ def export_data(data, file_path, file_format):
             writer.writerow(data)
 
 
-""" 
-find_rectangles: 矩形領域の座標を検出する関数
-    Args:
-        img_bw: 膨張処理後の画像
-        img_rects: 結果出力用の画像
-        filename: ファイルの名前
-        
-    return:
-        rects_sorted_memory: 矩形領域の座標を記録したリスト
-"""
+
 def find_rectangles(img_bw, img_rects, filename):
+    """ 
+    矩形領域の座標を検出する関数
+        Args:
+            img_bw: 膨張処理後の画像
+            img_rects: 結果出力用の画像
+            filename: ファイルの名前
+            
+        Returns:
+            rects_sorted_memory: 矩形領域の座標を記録したリスト
+    """
     contours, hierarchy = cv2.findContours(img_bw, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
     # 面積でフィルタリング
@@ -207,16 +213,17 @@ def find_rectangles(img_bw, img_rects, filename):
     return rect_sorted_memory
 
 
-""" 
-find_underlines: 下線部領域の座標を検出する関数
-    Args:
-        img_edges: エッジ検出後の画像
-        img_underline: 結果出力用の画像
-        rect_sorted_memory: 矩形領域の座標を記録したリスト
-        retval: 二値化で決定した閾値
-        filename: ファイルの名前
-"""
+
 def find_underlines(img_edges, img_underline, rect_sorted_memory, retval, filename):
+    """ 
+    下線部領域の座標を検出する関数
+        Args:
+            img_edges: エッジ検出後の画像
+            img_underline: 結果出力用の画像
+            rect_sorted_memory: 矩形領域の座標を記録したリスト
+            retval (int): 二値化で決定した閾値
+            filename: ファイルの名前
+    """
     height, width = img_edges.shape
     min_length = width * 0.1
 

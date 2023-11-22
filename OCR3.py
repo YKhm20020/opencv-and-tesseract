@@ -12,26 +12,28 @@ from fugashi import Tagger
 import json
 import csv
 
-""" 
-create_directories: 各ディレクトリを作成する関数
-"""
+
 def create_directories():
+    """ 
+    create_directories: 各ディレクトリを作成する関数
+    """
     os.makedirs('./results/OCR', exist_ok = True)
     os.makedirs('./data/OCR/txt', exist_ok=True)
     os.makedirs('./data/OCR/json', exist_ok=True)
     os.makedirs('./data/OCR/csv', exist_ok=True)
 
 
-""" 
-load_image: 入力画像を読み込む関数（画像とPDFの入力に対応）
-    Args:
-        input_path: 入力のパス
 
-    return:
-        img_original: 画像化した入力
-        img_OCR: img_original をコピーした、抽出文字のバウンディングボックスを描画する画像
-"""
 def load_image(input_path):
+    """ 
+    入力画像を読み込む関数（画像とPDFの入力に対応）
+        Args:
+            input_path (str): 入力のパス
+
+        Returns:
+            img_original: 画像化した入力
+            img_OCR: img_original をコピーした、抽出文字のバウンディングボックスを描画する画像
+    """
     if input_path.endswith('.pdf'):
         images = convert_from_path(pdf_path=input_path, dpi=300, fmt='png')
         # リストから最初の画像を選択
@@ -49,15 +51,16 @@ def load_image(input_path):
     return img_original, img_OCR
 
 
-""" 
-process_image: 画像処理を行う関数
-    Args:
-        input_img: 入力画像
 
-    return:
-        img_bw: 二値化後の画像
-"""
 def process_image(input_img):
+    """ 
+    画像処理を行う関数
+        Args:
+            input_img: 入力画像
+
+        Returns:
+            img_bw: 二値化後の画像
+    """
     img = input_img.copy()
     results_path = './results/OCR' 
 
@@ -70,14 +73,14 @@ def process_image(input_img):
     return img_bw
 
 
-""" 
-export_data: 検出したテキストとそのバウンディングボックスの座標をファイルとしてエクスポートする関数
-    Args:
-        file_path: エクスポートするファイルのパス
-        text: 抽出した文字
-        bounding_box: 抽出文字を囲うバウンディングボックスの座標
-"""
 def export_data(file_path, text, bounding_box):
+    """ 
+    検出したテキストとそのバウンディングボックスの座標をファイルとしてエクスポートする関数
+        Args:
+            file_path: エクスポートするファイルのパス
+            text: 抽出した文字
+            bounding_box: 抽出文字を囲うバウンディングボックスの座標
+    """
     # .txt, .json, .csv ファイルで抽出した文字をエクスポート
     with open(f'{file_path}/txt/string_text_data.txt', 'w', encoding='utf_8_sig') as f:
         json.dump(text, f)
@@ -101,18 +104,19 @@ def export_data(file_path, text, bounding_box):
         writer.writerow(bounding_box)
         
 
-""" 
-find_text_and_bounding_box: テキストの抽出とそのバウンディングボックスの座標を検出する関数
-    Args:
-        img_bw: エッジ検出後の画像
-        img_OCR: 結果出力用の画像
-        filename: ファイルの名前
-    
-    Return:
-        text_result: 抽出した文字
-        bounding_box_result: 抽出文字を囲うバウンディングボックス
-"""
+
 def find_text_and_bounding_box(img_bw, img_OCR, filename):
+    """ 
+    テキストの抽出とそのバウンディングボックスの座標を検出する関数
+        Args:
+            img_bw: エッジ検出後の画像
+            img_OCR: 結果出力用の画像
+            filename: ファイルの名前
+        
+        Returns:
+            text_result: 抽出した文字
+            bounding_box_result: 抽出文字を囲うバウンディングボックス
+    """
     # インストール済みのTesseractへパスを通す
     TESSERACT_PATH = os.path.abspath('TESSERACT-OCR')
     if TESSERACT_PATH not in os.environ['PATH'].split(os.pathsep):
