@@ -4,7 +4,7 @@ import torch
 from transformers import AutoTokenizer
 from auto_gptq import AutoGPTQForCausalLM
 from tqdm import tqdm
-from OCR3 import load_image, process_image, find_text_and_bounding_box, export_data
+from OCR import load_image, process_image, find_text_and_bounding_box, export_data
 
 def predict_attribute(tokenizer, model, text):
     """ 
