@@ -113,6 +113,13 @@ find_text_and_bounding_box: テキストの抽出とそのバウンディング�
         bounding_box_result: 抽出文字を囲うバウンディングボックス
 """
 def find_text_and_bounding_box(img_bw, img_OCR, filename):
+    # インストール済みのTesseractへパスを通す
+    TESSERACT_PATH = os.path.abspath('TESSERACT-OCR')
+    if TESSERACT_PATH not in os.environ['PATH'].split(os.pathsep):
+        os.environ['PATH'] += os.pathsep + TESSERACT_PATH
+
+    TESSDATA_PATH = os.path.join(TESSERACT_PATH, 'tessdata')
+    os.environ['TESSDATA_PREFIX'] = TESSDATA_PATH
     results_path = './results/OCR' 
     
     # 利用可能なOCRツールを取得
@@ -208,15 +215,6 @@ def find_text_and_bounding_box(img_bw, img_OCR, filename):
 
 
 def main():
-    
-    # インストール済みのTesseractへパスを通す
-    TESSERACT_PATH = os.path.abspath('TESSERACT-OCR')
-    if TESSERACT_PATH not in os.environ['PATH'].split(os.pathsep):
-        os.environ['PATH'] += os.pathsep + TESSERACT_PATH
-
-    TESSDATA_PATH = os.path.join(TESSERACT_PATH, 'tessdata')
-    os.environ['TESSDATA_PREFIX'] = TESSDATA_PATH
-    
     # ディレクトリ作成、入力画像の決定と読み取り
     create_directories()
 
