@@ -1,4 +1,5 @@
 import os
+from typing import List, Tuple
 import sys
 import cv2
 from pdf2image import convert_from_path
@@ -7,9 +8,11 @@ import json
 import csv
 
 
-def create_directories():
-    """ 
-    各ディレクトリを作成する関数
+def create_directories() -> None:
+    """ 各ディレクトリを作成する関数
+    
+    実行結果としてエクスポートするディレクトリや、処理後の画像を格納するディレクトリを作成する
+
     """
     os.makedirs('./results/rects', exist_ok = True)
     os.makedirs('./results/underlines', exist_ok=True)
@@ -22,19 +25,25 @@ def create_directories():
 
 
 
-def load_image(input_path):
-    """ 
+def load_image(image_path: str) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """ 入力画像を読み込む関数
+    
     入力画像を読み込む関数（画像とPDFの入力に対応）
+    
         Args:
-            input_path (str): 入力のパス
+            image_path (str): 入力画像のパス
 
         Returns:
-            img_original: 画像化した入力
-            img_rects: img_original をコピーした、矩形領域を描画する画像
-            img_underlines: img_original をコピーした、下線部領域を描画する画像
+            Tuple[np.ndarray, np.ndarray, np.ndarray]: 入力画像、矩形領域を描画する画像、下線部領域を描画する画像
+            
+        Note:
+            img_original (numpy.ndarray): 入力画像
+            img_rects (numpy.ndarray): img_original をコピーした、矩形領域を描画する画像
+            img_underlines (numpy.ndarray): img_original をコピーした、下線部領域を描画する画像
+
     """
-    if input_path.endswith('.pdf'):
-        images = convert_from_path(pdf_path=input_path, dpi=300, fmt='png')
+    if image_path.endswith('.pdf'):
+        images = convert_from_path(pdf_path=image_path, dpi=300, fmt='png')
         # リストから最初の画像を選択
         input_image = images[0]
         # PIL.Image を NumPy 配列に変換
@@ -45,24 +54,31 @@ def load_image(input_path):
         img_rects = input_image.copy()
         img_underlines = input_image.copy()
     else:
-        img_original = cv2.imread(input_path)
-        img_rects = cv2.imread(input_path)
-        img_underlines = cv2.imread(input_path)
-
+        img_original = cv2.imread(image_path)
+        img_rects = cv2.imread(image_path)
+        img_underlines = cv2.imread(image_path)
+    
     return img_original, img_rects, img_underlines
 
 
 
-def process_image(input_img):
-    """ 
-    画像処理を行う関数
+def process_image(input_img: np.ndarray) -> Tuple[np.ndarray, np.ndarray, float]:
+    """ 画像処理を行う関数
+    
+    グレースケール化、ガウシアンフィルタ適用、二値化、膨張処理を行う
+    さらに、下線部認識のみ、エッジ検出を行う
+
         Args:
-            input_img (str): 入力画像
+            input_img (numpy.ndarray): 入力画像
 
         Returns:
-            img_bw: 膨張処理後の画像
-            img_edges: エッジ検出後の画像
-            retval (int): 二値化で決定した閾値
+            Tuple[numpy.ndarray, numpy.ndarray, float]: 膨張処理後の画像、エッジ検出後の画像、二値化で決定した閾値
+            
+        Note:
+            img_bw (numpy.ndarray): 膨張処理後の画像
+            img_edges (numpy.ndarray): エッジ検出後の画像
+            retval (float): 二値化で決定した閾値
+
     """
     img = input_img.copy()
     
@@ -95,17 +111,23 @@ def process_image(input_img):
 
 
 
-def sort_points(points):
-    """ 
+def sort_points(points: np.ndarray) -> List[np.ndarray]:
+    """ 頂点を並び替える関数
+    
     頂点を左上、左下、右下、右上の順序に並び替える関数
+    
         Args:
-            points: 矩形領域の座標を格納したリスト
+            points (numpy.ndarray): 矩形領域の座標を格納したリスト
             
         Returns:
-            tl : top left (左上) の点の座標
-            tr : top right (右上) の点の座標
-            br : bottom right (右下) の点の座標
-            bl : bottom left (左下) の点の座標
+            list[numpy.ndarray]: 並び替え後の矩形の頂点座標
+            
+        Note: 
+            tl : top left (左上) の点の x, y 座標
+            tr : top right (右上) の点の x, y 座標
+            br : bottom right (右下) の点の x, y 座標
+            bl : bottom left (左下) の点の x, y 座標
+
     """
     # x座標とy座標の和が最小のものが左上
     tl = min(points, key=lambda x: x[0] + x[1])
@@ -115,18 +137,22 @@ def sort_points(points):
     br = max(points, key=lambda x: x[0] + x[1])
     # x座標とy座標の差が最大のものが左下
     bl = max(points, key=lambda x: x[0] - x[1])
+
     # 順序に従ってリストにする
     return [tl, tr, br, bl]
 
 
 
-def export_data(data, file_path, file_format):
-    """ 
-    検出した領域の座標をファイルとしてエクスポートする関数
+def export_data(data: List[np.ndarray], file_path: str, file_format: str) -> None:
+    """ 実行結果をファイルにエクスポートする関数
+    
+    検出したテキストとそのバウンディングボックスの座標を、txt, json, csv ファイルとしてエクスポートする関数
+    
         Args:
-            data: 領域の座標を格納したリスト
-            file_path: エクスポートするファイルのパス
-            file_format: エクスポートするファイルの拡張子
+            data (List[np.ndarray]): 領域の座標を格納したリスト
+            file_path (str): エクスポートするファイルのパス
+            file_format (str): エクスポートするファイルの拡張子
+
     """
     if file_format == 'txt':
         with open(file_path, 'w') as f:
@@ -141,16 +167,19 @@ def export_data(data, file_path, file_format):
 
 
 
-def find_rectangles(img_bw, img_rects, filename):
-    """ 
+def find_rectangles(img_bw: np.ndarray, img_rects: np.ndarray, filename: str) -> np.ndarray:
+    """ 矩形領域の座標を検出する関数
+
     矩形領域の座標を検出する関数
+
         Args:
-            img_bw: 膨張処理後の画像
-            img_rects: 結果出力用の画像
-            filename: ファイルの名前
+            img_bw (numpy.ndarray): 膨張処理後の画像
+            img_rects (numpy.ndarray): 結果出力用の画像
+            filename (str): ファイルの名前
             
         Returns:
-            rects_sorted_memory: 矩形領域の座標を記録したリスト
+            rects_sorted_memory (numpy.ndarray): 矩形領域の座標を記録したリスト
+
     """
     contours, hierarchy = cv2.findContours(img_bw, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
@@ -214,15 +243,15 @@ def find_rectangles(img_bw, img_rects, filename):
 
 
 
-def find_underlines(img_edges, img_underline, rect_sorted_memory, retval, filename):
+def find_underlines(img_edges: np.ndarray, img_underline: np.ndarray, rect_sorted_memory: np.ndarray, retval: float, filename: str) -> None:
     """ 
     下線部領域の座標を検出する関数
         Args:
-            img_edges: エッジ検出後の画像
-            img_underline: 結果出力用の画像
-            rect_sorted_memory: 矩形領域の座標を記録したリスト
-            retval (int): 二値化で決定した閾値
-            filename: ファイルの名前
+            img_edges (numpy.ndarray): エッジ検出後の画像
+            img_underline (numpy.ndarray): 結果出力用の画像
+            rect_sorted_memory (numpy.ndarray): 矩形領域の座標を記録したリスト
+            retval (float): 二値化で決定した閾値
+            filename (str): ファイルの名前
     """
     height, width = img_edges.shape
     min_length = width * 0.1

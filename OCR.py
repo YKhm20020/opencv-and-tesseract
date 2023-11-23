@@ -1,4 +1,5 @@
 import os
+from typing import List, Tuple
 import pyocr
 import pyocr.builders
 import pyocr.tesseract
@@ -8,14 +9,15 @@ from pdf2image import convert_from_path
 from PIL import Image
 import sys
 from fugashi import Tagger
-# 以下、データ出力用
 import json
 import csv
 
 
-def create_directories():
-    """ 
-    create_directories: 各ディレクトリを作成する関数
+def create_directories() -> None:
+    """ 各ディレクトリを作成する関数
+    
+    実行結果としてエクスポートするディレクトリや、処理後の画像を格納するディレクトリを作成する
+
     """
     os.makedirs('./results/OCR', exist_ok = True)
     os.makedirs('./data/OCR/txt', exist_ok=True)
@@ -24,18 +26,29 @@ def create_directories():
 
 
 
-def load_image(input_path):
-    """ 
+def load_image(image_path: str) -> Tuple[np.ndarray, np.ndarray]:
+    """ 入力画像を読み込む関数
+    
     入力画像を読み込む関数（画像とPDFの入力に対応）
+    
         Args:
-            input_path (str): 入力のパス
+            image_path (str): 入力のパス
 
         Returns:
-            img_original: 画像化した入力
-            img_OCR: img_original をコピーした、抽出文字のバウンディングボックスを描画する画像
+            Tuple[numpy.ndarray, numpy.ndarray]: 入力画像、抽出文字のバウンディングボックスを描画する画像
+            
+        Note:
+            img_original (numpy.ndarray): 入力画像
+            img_OCR (numpy.ndarray): img_original をコピーした、抽出文字のバウンディングボックスを描画する画像
+            
+            PDF は画像化することにより対応
+        
+        Todo:
+            PDF の2枚目以降も処理を繰り返すよう拡張する
+
     """
-    if input_path.endswith('.pdf'):
-        images = convert_from_path(pdf_path=input_path, dpi=300, fmt='png')
+    if image_path.endswith('.pdf'):
+        images = convert_from_path(pdf_path=image_path, dpi=300, fmt='png')
         # リストから最初の画像を選択
         input_image = images[0]
         # PIL.Image を NumPy 配列に変換
@@ -45,21 +58,24 @@ def load_image(input_path):
         img_original = input_image
         img_OCR = input_image.copy()
     else:
-        img_original = cv2.imread(input_path)
-        img_OCR = cv2.imread(input_path)
+        img_original = cv2.imread(image_path)
+        img_OCR = cv2.imread(image_path)
 
     return img_original, img_OCR
 
 
 
-def process_image(input_img):
-    """ 
-    画像処理を行う関数
+def process_image(input_img: np.ndarray) -> np.ndarray:
+    """ 画像処理を行う関数
+    
+    グレースケール化、ガウシアンフィルタ適用、二値化を行う
+    
         Args:
-            input_img: 入力画像
+            input_img (numpy.ndarray): 入力画像
 
         Returns:
-            img_bw: 二値化後の画像
+            numpy.ndarray: 二値化後の画像
+    
     """
     img = input_img.copy()
     results_path = './results/OCR' 
@@ -73,13 +89,16 @@ def process_image(input_img):
     return img_bw
 
 
-def export_data(file_path, text, bounding_box):
-    """ 
-    検出したテキストとそのバウンディングボックスの座標をファイルとしてエクスポートする関数
+def export_data(file_path: str, text: List[str], bounding_box: List[np.ndarray]) -> None:
+    """ 実行結果をファイルにエクスポートする関数
+    
+    検出したテキストとそのバウンディングボックスの座標を、txt, json, csv ファイルとしてエクスポートする関数
+    
         Args:
-            file_path: エクスポートするファイルのパス
-            text: 抽出した文字
-            bounding_box: 抽出文字を囲うバウンディングボックスの座標
+            file_path (str): エクスポートするファイルのパス
+            text (List[str]): 抽出した文字
+            bounding_box (List[numpy.ndarray]): 抽出文字を囲うバウンディングボックスの座標
+    
     """
     # .txt, .json, .csv ファイルで抽出した文字をエクスポート
     with open(f'{file_path}/txt/string_text_data.txt', 'w', encoding='utf_8_sig') as f:
@@ -105,17 +124,23 @@ def export_data(file_path, text, bounding_box):
         
 
 
-def find_text_and_bounding_box(img_bw, img_OCR, filename):
-    """ 
-    テキストの抽出とそのバウンディングボックスの座標を検出する関数
+def find_text_and_bounding_box(img_bw: np.ndarray, img_OCR: np.ndarray, filename: str) -> Tuple[List[str], List[np.ndarray]]:
+    """ 抽出文字とバウンディングボックスの座標を検出する関数
+    
+    Tesseract-OCR より、画像中の文字を抽出し、文字とそのバウンディングボックスの座標を検出する関数
+    
         Args:
-            img_bw: エッジ検出後の画像
-            img_OCR: 結果出力用の画像
-            filename: ファイルの名前
+            img_bw (numpy.ndarray): エッジ検出後の画像
+            img_OCR (numpy.ndarray): 結果出力用の画像
+            filename (str): ファイルの名前
         
         Returns:
-            text_result: 抽出した文字
-            bounding_box_result: 抽出文字を囲うバウンディングボックス
+            Tuple[List(str), List(numpy.ndarray)]: 抽出した文字、抽出文字を囲うバウンディングボックス
+            
+        Note:
+            text_result (list[str]): 抽出した文字
+            bounding_box_result (list[numpy.ndarray]): 抽出文字を囲うバウンディングボックス
+    
     """
     # インストール済みのTesseractへパスを通す
     TESSERACT_PATH = os.path.abspath('TESSERACT-OCR')
@@ -182,12 +207,12 @@ def find_text_and_bounding_box(img_bw, img_OCR, filename):
             if word.feature.lemma in text_white_list:
                 count_symbol -= 1
             parts += 1
-            #print(word, word.feature.lemma, word.pos, sep='\t')  # 形態素解析確認用
-        
+            # print(word, word.feature.lemma, word.pos, sep='\t')  # 形態素解析確認用
+
         # 一定割合以上が不要な品詞である場合、インデックスを保存。
         if count_symbol >= parts * 0.5 or (parts == 1 and count_symbol == 1):
             delete_index.append(i)
-    
+
     for i, box in enumerate(res):
         box_w = box.position[1][0] - box.position[0][0] # バウンディングボックスの幅
         box_h = box.position[1][1] - box.position[0][1] # バウンディングボックスの高さ
@@ -209,11 +234,11 @@ def find_text_and_bounding_box(img_bw, img_OCR, filename):
         print(f'string[{i}] {bounding_box_result[i]} : {text_result[i]}') # 座標と文字列を出力
         cv2.rectangle(img_OCR, bounding_box_result[i][0], bounding_box_result[i][1], (0, 0, 255), 1) # 検出した箇所を赤枠で囲む
         cv2.putText(img_OCR, str(i), bounding_box_result[i][0], cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2) # 番号をふる
-        
+
     # 検出結果の画像を表示
     cv2.imwrite(f'{results_path}/OCR_{filename}.png', img_OCR)
     cv2.imwrite(f'img_OCR.png', img_OCR) # 確認用
-        
+
     return text_result, bounding_box_result
 
 
@@ -249,7 +274,7 @@ def main():
     image_original, image_OCR = load_image(input_path)
     
     # 画像処理と領域取得
-    image_bw= process_image(image_original)
+    image_bw = process_image(image_original)
 
     # 配列を画像に変換
     image_bw = Image.fromarray(image_bw)

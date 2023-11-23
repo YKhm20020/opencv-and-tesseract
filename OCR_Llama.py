@@ -20,7 +20,7 @@ os.environ['TESSDATA_PREFIX'] = TESSDATA_PATH
 results_path = './results'
 os.makedirs(results_path, exist_ok = True)
 
-input_image = './sample/sample.jpg'
+input_image = './sample/sample4.jpg'
  
 # 利用可能なOCRツールを取得
 tools = pyocr.get_available_tools()
@@ -78,13 +78,13 @@ for i, line in enumerate(lines):
     # 〇〇というラベルは、日付、整数、文字列、単一選択、複数選択のうち、どれにあたる？
     output = replicate.run(
         "replicate/llama-2-70b-chat:2c1608e18606fad2812020dc541930f2d0495ce32eee50074220b87300bc16e1",
-        input={f"prompt": 'Which of the following is the label of "{label}" in Japanese: date, integer, string, single selection or multiple selection? Answer only these words.'}
+        input={f"prompt": 'Which of the following is the label of "{label}" in Japanese: date, number, string, single selection or multiple selection? Answer only these words.'}
     )
     
     output_list = list(output)
     output_str = "".join(output_list)
 
-    labels = ['str', 'date', 'int', 'single', 'multi']
+    labels = ['date', 'number', 'string', 'single selection', 'multiple selection']
 
     # label は str を初期値にし、異なる場合は変更
     label = 'str'
