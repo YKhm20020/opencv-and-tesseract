@@ -178,7 +178,7 @@ def main():
         #input_path = './sample/P/26休暇届_/A089夏季休暇届.png'
         
         # ファイルが存在しない場合の例外処理
-        if not os.path.exists(input_path):
+        if not os.path.isfile(input_path):
             raise FileNotFoundError(f"The file '{input_path}' does not exist.")
         
     except Exception as e:

@@ -73,9 +73,9 @@ def predict_text_attribute(tokenizer, model, txt: str) -> str:
     
     
 def link_attribute_to_text(tokenizer, model, txts: str) -> List[str]:
-    """ 属性を推測する関数
+    """ 抽出文字と推測属性を紐づけする関数
     
-    文字抽出によって抽出した文字の属性を推測する関数
+    各抽出結果に対して、推測した属性を紐付ける関数
     
         Args:
             tokenizer: トークナイザー
@@ -83,19 +83,15 @@ def link_attribute_to_text(tokenizer, model, txts: str) -> List[str]:
             txts (str): 抽出した文字
         
         Returns:
-            atts (List[str]): 全抽出文字について推測した属性のリスト
+            List[str]: 全抽出文字について推測した属性のリスト
             
         Note:
             tokenizer: <class 'transformers.models.llama.tokenization_llama_fast.LlamaTokenizerFast'> 
             model: <class 'auto_gptq.modeling.llama.LlamaGPTQForCausalLM'>
     
     """
-    atts = []
-    for i in tqdm(range(len(txts))):
-        att = predict_text_attribute(tokenizer, model, txts[i])
-        atts.append(att)
     
-    return atts
+    return [predict_text_attribute(tokenizer, model, txt) for txt in tqdm(txts)]
 
 
 def main():
@@ -108,7 +104,7 @@ def main():
         #input_path =  './sample/P/20230826_富士瓦斯資料_設備保安点検01.pdf'
         
         # ファイルが存在しない場合の例外処理
-        if not os.path.exists(input_path):
+        if not os.path.isfile(input_path):
             raise FileNotFoundError(f"The file '{input_path}' does not exist.")
         
     except Exception as e:
