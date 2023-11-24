@@ -1,68 +1,13 @@
 import os
-from typing import List, Tuple
 import sys
+from typing import List, Tuple
 import cv2
-from pdf2image import convert_from_path
 import numpy as np
-import json
-import csv
+from prepare import create_area_directories, load_area_image
+from export_data import export_area_data
 
 
-def create_directories() -> None:
-    """ 各ディレクトリを作成する関数
-    
-    実行結果としてエクスポートするディレクトリや、処理後の画像を格納するディレクトリを作成する
-
-    """
-    os.makedirs('./results/rects', exist_ok = True)
-    os.makedirs('./results/underlines', exist_ok=True)
-    os.makedirs('./data/rects/txt', exist_ok=True)
-    os.makedirs('./data/rects/json', exist_ok=True)
-    os.makedirs('./data/rects/csv', exist_ok=True)
-    os.makedirs('./data/underlines/txt', exist_ok=True)
-    os.makedirs('./data/underlines/json', exist_ok=True)
-    os.makedirs('./data/underlines/csv', exist_ok=True)
-
-
-
-def load_image(image_path: str) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """ 入力画像を読み込む関数
-    
-    入力画像を読み込む関数（画像とPDFの入力に対応）
-    
-        Args:
-            image_path (str): 入力画像のパス
-
-        Returns:
-            Tuple[np.ndarray, np.ndarray, np.ndarray]: 入力画像、矩形領域を描画する画像、下線部領域を描画する画像
-            
-        Note:
-            img_original (numpy.ndarray): 入力画像
-            img_rects (numpy.ndarray): img_original をコピーした、矩形領域を描画する画像
-            img_underlines (numpy.ndarray): img_original をコピーした、下線部領域を描画する画像
-
-    """
-    if image_path.endswith('.pdf'):
-        images = convert_from_path(pdf_path=image_path, dpi=300, fmt='png')
-        # リストから最初の画像を選択
-        input_image = images[0]
-        # PIL.Image を NumPy 配列に変換
-        input_image = np.array(input_image)
-        # RGB から BGR に色空間を変換
-        input_image = cv2.cvtColor(input_image, cv2.COLOR_RGB2BGR)
-        img_original = input_image
-        img_rects = input_image.copy()
-        img_underlines = input_image.copy()
-    else:
-        img_original = cv2.imread(image_path)
-        img_rects = cv2.imread(image_path)
-        img_underlines = cv2.imread(image_path)
-    
-    return img_original, img_rects, img_underlines
-
-
-
-def process_image(input_img: np.ndarray) -> Tuple[np.ndarray, np.ndarray, float]:
+def process_image_area(input_img: np.ndarray) -> Tuple[np.ndarray, np.ndarray, float]:
     """ 画像処理を行う関数
     
     グレースケール化、ガウシアンフィルタ適用、二値化、膨張処理を行う
@@ -142,31 +87,6 @@ def sort_points(points: np.ndarray) -> List[np.ndarray]:
     return [tl, tr, br, bl]
 
 
-
-def export_data(data: List[np.ndarray], file_path: str, file_format: str) -> None:
-    """ 実行結果をファイルにエクスポートする関数
-    
-    検出したテキストとそのバウンディングボックスの座標を、txt, json, csv ファイルとしてエクスポートする関数
-    
-        Args:
-            data (List[np.ndarray]): 領域の座標を格納したリスト
-            file_path (str): エクスポートするファイルのパス
-            file_format (str): エクスポートするファイルの拡張子
-
-    """
-    if file_format == 'txt':
-        with open(file_path, 'w') as f:
-            json.dump(data, f)
-    elif file_format == 'json':
-        with open(file_path, 'w') as f:
-            json.dump(data, f)
-    elif file_format == 'csv':
-        with open(file_path, 'w', newline='') as f:
-            writer = csv.writer(f)
-            writer.writerow(data)
-
-
-
 def find_rectangles(img_bw: np.ndarray, img_rects: np.ndarray, filename: str) -> np.ndarray:
     """ 矩形領域の座標を検出する関数
 
@@ -235,9 +155,9 @@ def find_rectangles(img_bw: np.ndarray, img_rects: np.ndarray, filename: str) ->
     data_json_path = os.path.join(output_path, 'json')
     data_csv_path = os.path.join(output_path, 'csv')
 
-    export_data(rect_sorted_list, os.path.join(data_txt_path, f'rects_data.txt'), 'txt')
-    export_data(rect_sorted_list, os.path.join(data_json_path, f'rects_data.json'), 'json')
-    export_data(rect_sorted_list, os.path.join(data_csv_path, f'rects_data.csv'), 'csv')
+    export_area_data(rect_sorted_list, os.path.join(data_txt_path, f'rects_data.txt'), 'txt')
+    export_area_data(rect_sorted_list, os.path.join(data_json_path, f'rects_data.json'), 'json')
+    export_area_data(rect_sorted_list, os.path.join(data_csv_path, f'rects_data.csv'), 'csv')
 
     return rect_sorted_memory
 
@@ -351,42 +271,46 @@ def find_underlines(img_edges: np.ndarray, img_underline: np.ndarray, rect_sorte
         data_json_path = os.path.join(output_path, 'json')
         data_csv_path = os.path.join(output_path, 'csv')
 
-        export_data(unique_horizontal_list, os.path.join(data_txt_path, f'underlines_data.txt'), 'txt')
-        export_data(unique_horizontal_list, os.path.join(data_json_path, f'underlines_data.json'), 'json')
-        export_data(unique_horizontal_list, os.path.join(data_csv_path, f'underlines_data.csv'), 'csv')
+        export_area_data(unique_horizontal_list, os.path.join(data_txt_path, f'underlines_data.txt'), 'txt')
+        export_area_data(unique_horizontal_list, os.path.join(data_json_path, f'underlines_data.json'), 'json')
+        export_area_data(unique_horizontal_list, os.path.join(data_csv_path, f'underlines_data.csv'), 'csv')
 
 
 
 def main():
 
     # ディレクトリ作成、入力画像の決定と読み取り
-    create_directories()
-
-    # input_path =  './sample/P/3．入出退健康管理簿.pdf'
-    #input_path =  './sample/P/13-3-18 入出退健康管理簿（確認印欄あり）.pdf'
-    #input_path =  './sample/P/20230826_富士瓦斯資料_設備保安点検01.pdf'
-
-    input_path = './sample/deblur_sample3.png'
-    #input_path = './sample/P/02稟議書_/A281新卒者採用稟議書.png'
-    #input_path = './sample/P/02稟議書_/A282広告出稿稟議書.png'
-    #input_path = './sample/P/02稟議書_/A321稟議書.png'
-    #input_path = './sample/P/02稟議書_/A438安全衛生推進者選任稟議書.png'
-    #input_path = './sample/P/02稟議書_/A481広告出稿稟議書.png'
-    #input_path = './sample/P/18作業報告書_/B090入庫報告書.png'
-    #input_path = './sample/P/26休暇届_/A089夏季休暇届.png'
+    create_area_directories()
     
-    # ファイルが存在しない場合、プログラムを終了する
-    if not os.path.exists(input_path):
-        print(f"Error: The file '{input_path}' does not exist.")
-        return
+    try:
+        #input_path =  './sample/P/3．入出退健康管理簿.pdf'
+        #input_path =  './sample/P/13-3-18 入出退健康管理簿（確認印欄あり）.pdf'
+        #input_path =  './sample/P/20230826_富士瓦斯資料_設備保安点検01.pdf'
+
+        input_path = './sample/deblur_sample9.png'
+        #input_path = './sample/P/02稟議書_/A281新卒者採用稟議書.png'
+        #input_path = './sample/P/02稟議書_/A282広告出稿稟議書.png'
+        #input_path = './sample/P/02稟議書_/A321稟議書.png'
+        #input_path = './sample/P/02稟議書_/A438安全衛生推進者選任稟議書.png'
+        #input_path = './sample/P/02稟議書_/A481広告出稿稟議書.png'
+        #input_path = './sample/P/18作業報告書_/B090入庫報告書.png'
+        #input_path = './sample/P/26休暇届_/A089夏季休暇届.png'
+        
+        # ファイルが存在しない場合、プログラムを終了する
+        if not os.path.exists(input_path):
+            raise FileNotFoundError(f"The file '{input_path}' does not exist.")
+            
+    except Exception as e:
+        print(f"Error: {e}")
+        sys.exit()
+        
+    # 入力画像の読み込み
 
     filename = os.path.splitext(os.path.basename(input_path))[0]
-
-    # 入力画像の読み込み
-    image_original, image_rects, image_underline = load_image(input_path)
+    image_original, image_rects, image_underline = load_area_image(input_path)
 
     # 画像処理と領域取得
-    image_bw, image_edges, retval = process_image(image_original)
+    image_bw, image_edges, retval = process_image_area(image_original)
     rect_coords = find_rectangles(image_bw, image_rects, filename)
     find_underlines(image_edges, image_underline, rect_coords, retval, filename)
 

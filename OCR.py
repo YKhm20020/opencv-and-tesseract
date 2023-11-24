@@ -1,71 +1,18 @@
 import os
+import sys
 from typing import List, Tuple
 import pyocr
 import pyocr.builders
 import pyocr.tesseract
 import numpy as np
 import cv2
-from pdf2image import convert_from_path
 from PIL import Image
-import sys
 from fugashi import Tagger
-import json
-import csv
+from prepare import create_OCR_directories, load_OCR_image
+from export_data import export_OCR_data
 
 
-def create_directories() -> None:
-    """ 各ディレクトリを作成する関数
-    
-    実行結果としてエクスポートするディレクトリや、処理後の画像を格納するディレクトリを作成する
-
-    """
-    os.makedirs('./results/OCR', exist_ok = True)
-    os.makedirs('./data/OCR/txt', exist_ok=True)
-    os.makedirs('./data/OCR/json', exist_ok=True)
-    os.makedirs('./data/OCR/csv', exist_ok=True)
-
-
-
-def load_image(image_path: str) -> Tuple[np.ndarray, np.ndarray]:
-    """ 入力画像を読み込む関数
-    
-    入力画像を読み込む関数（画像とPDFの入力に対応）
-    
-        Args:
-            image_path (str): 入力のパス
-
-        Returns:
-            Tuple[numpy.ndarray, numpy.ndarray]: 入力画像、抽出文字のバウンディングボックスを描画する画像
-            
-        Note:
-            img_original (numpy.ndarray): 入力画像
-            img_OCR (numpy.ndarray): img_original をコピーした、抽出文字のバウンディングボックスを描画する画像
-            
-            PDF は画像化することにより対応
-        
-        Todo:
-            PDF の2枚目以降も処理を繰り返すよう拡張する
-
-    """
-    if image_path.endswith('.pdf'):
-        images = convert_from_path(pdf_path=image_path, dpi=300, fmt='png')
-        # リストから最初の画像を選択
-        input_image = images[0]
-        # PIL.Image を NumPy 配列に変換
-        input_image = np.array(input_image)
-        # RGB から BGR に色空間を変換
-        input_image = cv2.cvtColor(input_image, cv2.COLOR_RGB2BGR)
-        img_original = input_image
-        img_OCR = input_image.copy()
-    else:
-        img_original = cv2.imread(image_path)
-        img_OCR = cv2.imread(image_path)
-
-    return img_original, img_OCR
-
-
-
-def process_image(input_img: np.ndarray) -> np.ndarray:
+def process_image_OCR(input_img: np.ndarray) -> np.ndarray:
     """ 画像処理を行う関数
     
     グレースケール化、ガウシアンフィルタ適用、二値化を行う
@@ -79,6 +26,7 @@ def process_image(input_img: np.ndarray) -> np.ndarray:
     """
     img = input_img.copy()
     results_path = './results/OCR' 
+    cv2.imwrite(f'{results_path}/0_original.png', img) # 確認用
 
     # BGR -> グレースケール -> ガウシアンフィルタ -> 二値画像
     img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -87,41 +35,6 @@ def process_image(input_img: np.ndarray) -> np.ndarray:
     cv2.imwrite(f'{results_path}/1_thresh.png', img_bw) # 確認用
     
     return img_bw
-
-
-def export_data(file_path: str, text: List[str], bounding_box: List[np.ndarray]) -> None:
-    """ 実行結果をファイルにエクスポートする関数
-    
-    検出したテキストとそのバウンディングボックスの座標を、txt, json, csv ファイルとしてエクスポートする関数
-    
-        Args:
-            file_path (str): エクスポートするファイルのパス
-            text (List[str]): 抽出した文字
-            bounding_box (List[numpy.ndarray]): 抽出文字を囲うバウンディングボックスの座標
-    
-    """
-    # .txt, .json, .csv ファイルで抽出した文字をエクスポート
-    with open(f'{file_path}/txt/string_text_data.txt', 'w', encoding='utf_8_sig') as f:
-        json.dump(text, f)
-
-    with open(f'{file_path}/json/string_text_data.json', 'w', encoding='utf_8_sig') as f:
-        json.dump(text, f)
-        
-    with open(f'{file_path}/csv/string_text_data.csv', 'w', encoding='utf_8_sig') as f:
-        writer = csv.writer(f)
-        writer.writerow(text)
-        
-    # .txt, .json, .csv ファイルで文字位置を示すバウンディングボックスの座標をエクスポート
-    with open(f'{file_path}/txt/string_bounding_box_data.txt', 'w') as f:
-        json.dump(bounding_box, f)
-
-    with open(f'{file_path}/json/string_bounding_box_data.json', 'w') as f:
-        json.dump(bounding_box, f)
-
-    with open(f'{file_path}/csv/string_bounding_box_data.csv', 'w') as f:
-        writer = csv.writer(f)
-        writer.writerow(bounding_box)
-        
 
 
 def find_text_and_bounding_box(img_bw: np.ndarray, img_OCR: np.ndarray, filename: str) -> Tuple[List[str], List[np.ndarray]]:
@@ -245,36 +158,41 @@ def find_text_and_bounding_box(img_bw: np.ndarray, img_OCR: np.ndarray, filename
 
 def main():
     # ディレクトリ作成、入力画像の決定と読み取り
-    create_directories()
+    create_OCR_directories()
 
-    #input_path = './sample/sample6.png'
-    input_path = './sample/blur_sample3.png'
+    try:
+        #input_path = './sample/sample6.png'
+        input_path = './sample/blur_sample3.png'
 
-    #input_path =  './sample/P/3．入出退健康管理簿.pdf'
-    #input_path =  './sample/P/13-3-18 入出退健康管理簿（確認印欄あり）.pdf'
-    #input_path =  './sample/P/20230826_富士瓦斯資料_設備保安点検01.pdf'
+        #input_path =  './sample/P/3．入出退健康管理簿.pdf'
+        #input_path =  './sample/P/13-3-18 入出退健康管理簿（確認印欄あり）.pdf'
+        #input_path =  './sample/P/20230826_富士瓦斯資料_設備保安点検01.pdf'
 
-    #input_path = './sample/sample.png'
-    #input_path = './sample/P/02稟議書_/A281新卒者採用稟議書.png'
-    #input_path = './sample/P/02稟議書_/A282広告出稿稟議書.png'
-    #input_path = './sample/P/02稟議書_/A321稟議書.png'
-    #input_path = './sample/P/02稟議書_/A438安全衛生推進者選任稟議書.png'
-    #input_path = './sample/P/02稟議書_/A481広告出稿稟議書.png'
-    #input_path = './sample/P/18作業報告書_/B090入庫報告書.png'
-    #input_path = './sample/P/26休暇届_/A089夏季休暇届.png'
+        #input_path = './sample/sample.png'
+        #input_path = './sample/P/02稟議書_/A281新卒者採用稟議書.png'
+        #input_path = './sample/P/02稟議書_/A282広告出稿稟議書.png'
+        #input_path = './sample/P/02稟議書_/A321稟議書.png'
+        #input_path = './sample/P/02稟議書_/A438安全衛生推進者選任稟議書.png'
+        #input_path = './sample/P/02稟議書_/A481広告出稿稟議書.png'
+        #input_path = './sample/P/18作業報告書_/B090入庫報告書.png'
+        #input_path = './sample/P/26休暇届_/A089夏季休暇届.png'
+        
+        # ファイルが存在しない場合の例外処理
+        if not os.path.exists(input_path):
+            raise FileNotFoundError(f"The file '{input_path}' does not exist.")
+        
+    except Exception as e:
+        print(f"Error: {e}")
+        sys.exit()
     
-    # ファイルが存在しない場合、プログラムを終了する
-    if not os.path.exists(input_path):
-        print(f"Error: The file '{input_path}' does not exist.")
-        return
 
     filename = os.path.splitext(os.path.basename(input_path))[0]
 
     # 入力画像の読み込み
-    image_original, image_OCR = load_image(input_path)
+    image_original, image_OCR = load_OCR_image(input_path)
     
     # 画像処理と領域取得
-    image_bw = process_image(image_original)
+    image_bw = process_image_OCR(image_original)
 
     # 配列を画像に変換
     image_bw = Image.fromarray(image_bw)
@@ -284,7 +202,7 @@ def main():
     
     # 動作結果をファイルにエクスポート
     results_path = './data/OCR'
-    export_data(results_path, text, bounding_box)
+    export_OCR_data(results_path, text, bounding_box)
     
     
     
