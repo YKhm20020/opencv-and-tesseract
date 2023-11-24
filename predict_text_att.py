@@ -107,7 +107,7 @@ def main():
         #input_path =  './sample/P/13-3-18 入出退健康管理簿（確認印欄あり）.pdf'
         #input_path =  './sample/P/20230826_富士瓦斯資料_設備保安点検01.pdf'
         
-        # ファイルが存在しない場合、プログラムを終了する
+        # ファイルが存在しない場合の例外処理
         if not os.path.exists(input_path):
             raise FileNotFoundError(f"The file '{input_path}' does not exist.")
         

@@ -278,7 +278,6 @@ def find_underlines(img_edges: np.ndarray, img_underline: np.ndarray, rect_sorte
 
 
 def main():
-
     # ディレクトリ作成、入力画像の決定と読み取り
     create_area_directories()
     
@@ -296,7 +295,7 @@ def main():
         #input_path = './sample/P/18作業報告書_/B090入庫報告書.png'
         #input_path = './sample/P/26休暇届_/A089夏季休暇届.png'
         
-        # ファイルが存在しない場合、プログラムを終了する
+        # ファイルが存在しない場合の例外処理
         if not os.path.exists(input_path):
             raise FileNotFoundError(f"The file '{input_path}' does not exist.")
             
@@ -305,7 +304,6 @@ def main():
         sys.exit()
         
     # 入力画像の読み込み
-
     filename = os.path.splitext(os.path.basename(input_path))[0]
     image_original, image_rects, image_underline = load_area_image(input_path)
 
