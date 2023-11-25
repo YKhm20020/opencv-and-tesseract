@@ -24,15 +24,19 @@ def process_image_OCR(input_img: np.ndarray) -> np.ndarray:
             numpy.ndarray: 二値化後の画像
     
     """
+    
     img = input_img.copy()
     results_path = './results/OCR' 
     cv2.imwrite(f'{results_path}/0_original.png', img) # 確認用
 
-    # BGR -> グレースケール -> ガウシアンフィルタ -> 二値画像
+    # BGR -> グレースケール -> ガウシアンフィルタ -> 二値化
     img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     img_gray = cv2.GaussianBlur(img_gray, (3, 3), 0)
     retval, img_bw = cv2.threshold(img_gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
     cv2.imwrite(f'{results_path}/1_thresh.png', img_bw) # 確認用
+    
+    # 配列を画像に変換
+    img_bw = Image.fromarray(img_bw)
     
     return img_bw
 
@@ -55,6 +59,7 @@ def find_text_and_bounding_box(img_bw: np.ndarray, img_OCR: np.ndarray, filename
             bounding_box_result (list[numpy.ndarray]): 抽出文字を囲うバウンディングボックス
     
     """
+    
     # インストール済みのTesseractへパスを通す
     TESSERACT_PATH = os.path.abspath('TESSERACT-OCR')
     if TESSERACT_PATH not in os.environ['PATH'].split(os.pathsep):
@@ -157,7 +162,7 @@ def find_text_and_bounding_box(img_bw: np.ndarray, img_OCR: np.ndarray, filename
 
 
 def main():
-    # ディレクトリ作成、入力画像の決定と読み取り
+    # ディレクトリ作成
     create_OCR_directories()
 
     try:
@@ -191,18 +196,14 @@ def main():
     # 入力画像の読み込み
     image_original, image_OCR = load_OCR_image(input_path)
     
-    # 画像処理と領域取得
+    # 画像処理
     image_bw = process_image_OCR(image_original)
 
-    # 配列を画像に変換
-    image_bw = Image.fromarray(image_bw)
-    
     # テキスト抽出とバウンディングボックス検出
     text, bounding_box = find_text_and_bounding_box(image_bw, image_OCR, filename)
     
     # 動作結果をファイルにエクスポート
-    results_path = './data/OCR'
-    export_OCR_data(results_path, text, bounding_box)
+    export_OCR_data(text, bounding_box)
     
     
     

@@ -4,7 +4,7 @@ from typing import List, Tuple
 import cv2
 import numpy as np
 from prepare import create_area_directories, load_area_image
-from export_data import export_area_data
+from export_data import export_rects_data, export_underlines_data
 
 
 def process_image_area(input_img: np.ndarray) -> Tuple[np.ndarray, np.ndarray, float]:
@@ -25,6 +25,7 @@ def process_image_area(input_img: np.ndarray) -> Tuple[np.ndarray, np.ndarray, f
             retval (float): 二値化で決定した閾値
 
     """
+    
     img = input_img.copy()
     
     results_path = './results/rects'
@@ -74,6 +75,7 @@ def sort_points(points: np.ndarray) -> List[np.ndarray]:
             bl : bottom left (左下) の点の x, y 座標
 
     """
+    
     # x座標とy座標の和が最小のものが左上
     tl = min(points, key=lambda x: x[0] + x[1])
     # x座標とy座標の差が最小のものが右上
@@ -101,6 +103,7 @@ def find_rectangles(img_bw: np.ndarray, img_rects: np.ndarray, filename: str) ->
             rects_sorted_memory (numpy.ndarray): 矩形領域の座標を記録したリスト
 
     """
+    
     contours, hierarchy = cv2.findContours(img_bw, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
     # 面積でフィルタリング
@@ -149,21 +152,13 @@ def find_rectangles(img_bw: np.ndarray, img_rects: np.ndarray, filename: str) ->
     rect_sorted_memory = np.array(rect_sorted_memory)
     rect_sorted_list = rect_sorted_memory.tolist()
     
-    # .txt, .json, .csv ファイルで矩形領域の座標をエクスポート
-    output_path = './data/rects'
-    data_txt_path = os.path.join(output_path, 'txt')
-    data_json_path = os.path.join(output_path, 'json')
-    data_csv_path = os.path.join(output_path, 'csv')
-
-    export_area_data(rect_sorted_list, os.path.join(data_txt_path, f'rects_data.txt'), 'txt')
-    export_area_data(rect_sorted_list, os.path.join(data_json_path, f'rects_data.json'), 'json')
-    export_area_data(rect_sorted_list, os.path.join(data_csv_path, f'rects_data.csv'), 'csv')
-
+    # 矩形領域の座標をファイルにエクスポート
+    export_rects_data(rect_sorted_list)
+    
     return rect_sorted_memory
 
 
-
-def find_underlines(img_edges: np.ndarray, img_underline: np.ndarray, rect_sorted_memory: np.ndarray, retval: float, filename: str) -> None:
+def find_underlines(img_edges: np.ndarray, img_underline: np.ndarray, rect_sorted_memory: np.ndarray, retval: float, filename: str) -> List[np.ndarray]:
     """ 
     下線部領域の座標を検出する関数
         Args:
@@ -172,7 +167,11 @@ def find_underlines(img_edges: np.ndarray, img_underline: np.ndarray, rect_sorte
             rect_sorted_memory (numpy.ndarray): 矩形領域の座標を記録したリスト
             retval (float): 二値化で決定した閾値
             filename (str): ファイルの名前
+            
+        Returns:
+            List[numpy.ndarray]: 下線の両端点の座標
     """
+    
     height, width = img_edges.shape
     min_length = width * 0.1
 
@@ -265,20 +264,15 @@ def find_underlines(img_edges: np.ndarray, img_underline: np.ndarray, rect_sorte
         
         unique_horizontal_list = unique_horizontal_nparray.tolist()
         
-        # .txt, .json, .csv ファイルで下線部領域の座標をエクスポート
-        output_path = './data/underlines'
-        data_txt_path = os.path.join(output_path, 'txt')
-        data_json_path = os.path.join(output_path, 'json')
-        data_csv_path = os.path.join(output_path, 'csv')
-
-        export_area_data(unique_horizontal_list, os.path.join(data_txt_path, f'underlines_data.txt'), 'txt')
-        export_area_data(unique_horizontal_list, os.path.join(data_json_path, f'underlines_data.json'), 'json')
-        export_area_data(unique_horizontal_list, os.path.join(data_csv_path, f'underlines_data.csv'), 'csv')
+        # 下線部領域の座標をファイルにエクスポート
+        export_underlines_data(unique_horizontal_list)
+        
+        return unique_horizontal_list
 
 
 
 def main():
-    # ディレクトリ作成、入力画像の決定と読み取り
+    # ディレクトリ作成
     create_area_directories()
     
     try:
@@ -310,7 +304,7 @@ def main():
     # 画像処理と領域取得
     image_bw, image_edges, retval = process_image_area(image_original)
     rect_coords = find_rectangles(image_bw, image_rects, filename)
-    find_underlines(image_edges, image_underline, rect_coords, retval, filename)
+    underline_coords = find_underlines(image_edges, image_underline, rect_coords, retval, filename)
 
 if __name__ == "__main__":
     main()

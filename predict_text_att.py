@@ -95,6 +95,9 @@ def link_attribute_to_text(tokenizer, model, txts: str) -> List[str]:
 
 
 def main():
+    # ディレクトリ作成
+    create_OCR_directories()
+    
     try:
         #input_path = './sample/sample4.jpg'
         input_path = './sample/sample.png'
@@ -118,25 +121,18 @@ def main():
     
     if torch.cuda.is_available():
         model = model.to("cuda")
-        
-    # ディレクトリ作成、入力画像の決定と読み取り
-    create_OCR_directories()
     
     # 入力画像の読み込み
     image_original, image_OCR = load_OCR_image(input_path)
     
-    # 画像処理と領域取得
+    # 画像処理
     image_bw = process_image_OCR(image_original)
-
-    # 配列を画像に変換
-    image_bw = Image.fromarray(image_bw)
     
     # テキスト抽出とバウンディングボックス検出
     texts, bounding_boxes = find_text_and_bounding_box(image_bw, image_OCR, filename)
     
     # 動作結果をファイルにエクスポート
-    results_path = './data/OCR'
-    export_OCR_data(results_path, texts, bounding_boxes)
+    export_OCR_data(texts, bounding_boxes)
     
     # 文字属性の推測
     print('\nstarting attributes prediction')
