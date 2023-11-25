@@ -92,7 +92,7 @@ def sort_points(points: np.ndarray) -> List[np.ndarray]:
 def find_rectangles(img_bw: np.ndarray, img_rects: np.ndarray, filename: str) -> np.ndarray:
     """ 矩形領域の座標を検出する関数
 
-    矩形領域の座標を検出する関数
+    矩形領域の各頂点の x, y 座標を検出する関数
 
         Args:
             img_bw (numpy.ndarray): 膨張処理後の画像
@@ -159,8 +159,10 @@ def find_rectangles(img_bw: np.ndarray, img_rects: np.ndarray, filename: str) ->
 
 
 def find_underlines(img_edges: np.ndarray, img_underline: np.ndarray, rect_sorted_memory: np.ndarray, retval: float, filename: str) -> List[np.ndarray]:
-    """ 
-    下線部領域の座標を検出する関数
+    """ 下線部領域の座標を検出する関数
+    
+    下線の両端点の x, y 座標を出力する関数
+    
         Args:
             img_edges (numpy.ndarray): エッジ検出後の画像
             img_underline (numpy.ndarray): 結果出力用の画像
@@ -184,7 +186,7 @@ def find_underlines(img_edges: np.ndarray, img_underline: np.ndarray, rect_sorte
 
     if lines is None:
         print('Straight lines are not detected')
-        sys.exit()
+        return None
     else:
         for line in lines:
             tl_x, tl_y, br_x, br_y = line[0]
@@ -249,7 +251,7 @@ def find_underlines(img_edges: np.ndarray, img_underline: np.ndarray, rect_sorte
         # 矩形領域と重複しない水平線の座標を表示する
         if unique_horizontal_nparray.shape[0] == 0:
             print('Underlines are not detected')
-            sys.exit()
+            return None
         else:
             for i, line in enumerate(unique_horizontal_nparray):
                 x1, y1, x2, y2 = unique_horizontal_nparray[i]

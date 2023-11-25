@@ -1,7 +1,6 @@
 import os
 import sys
 from typing import List
-from PIL import Image
 import torch
 from transformers import AutoTokenizer
 from auto_gptq import AutoGPTQForCausalLM
@@ -27,6 +26,7 @@ def predict_text_attribute(tokenizer, model, txt: str) -> str:
             model: <class 'auto_gptq.modeling.llama.LlamaGPTQForCausalLM'>
     
     """
+    
     # プロンプトの記述
     instruction = "書類の項目として、記入欄がどのデータ型にあたるかを選択してください。名前や住所や状態は文字列、期間や期限や時間は日付、経費や金額や個数は数値のように答えてください。"
     input = f"「{txt}」という欄がどのデータ型に該当するかを、日付、文字列、数値、単一選択、複数選択の中から最も適切なものを選んでください。"

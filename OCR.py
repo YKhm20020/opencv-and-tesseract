@@ -1,10 +1,10 @@
 import os
 import sys
 from typing import List, Tuple
+import numpy as np
 import pyocr
 import pyocr.builders
 import pyocr.tesseract
-import numpy as np
 import cv2
 from PIL import Image
 from fugashi import Tagger
@@ -55,8 +55,8 @@ def find_text_and_bounding_box(img_bw: np.ndarray, img_OCR: np.ndarray, filename
             Tuple[List(str), List(numpy.ndarray)]: 抽出した文字、抽出文字を囲うバウンディングボックス
             
         Note:
-            text_result (list[str]): 抽出した文字
-            bounding_box_result (list[numpy.ndarray]): 抽出文字を囲うバウンディングボックス
+            text_result (List[str]): 抽出した文字
+            bounding_box_result (List[numpy.ndarray]): 抽出文字を囲うバウンディングボックス
     
     """
     
@@ -189,7 +189,6 @@ def main():
     except Exception as e:
         print(f"Error: {e}")
         sys.exit()
-    
 
     filename = os.path.splitext(os.path.basename(input_path))[0]
 
