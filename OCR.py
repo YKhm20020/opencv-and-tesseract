@@ -100,9 +100,7 @@ def find_text_and_bounding_box(img_bw: np.ndarray, img_OCR: np.ndarray, filename
 
     # 取得した文字列を表示
     text = []
-    text_result = []
     delete_index = []
-    bounding_box_result = [] # バウンディングボックスの座標を格納するリスト
     res_txt = res_txt.replace(' ', '') # 余分な空白を削除
     res_txt = res_txt.replace('\n\n', '\n') # 余分な改行を削除
     splitted_txt = res_txt.split('\n') # 改行で分割
