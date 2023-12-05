@@ -57,9 +57,6 @@ def find_text_and_bounding_box(img_bw: np.ndarray, img_OCR: np.ndarray, filename
         Note:
             text_result (List[str]): 抽出した文字
             bounding_box_result (List[numpy.ndarray]): 抽出文字を囲うバウンディングボックス
-            
-            抽出文字とバウンディングボックスの関係性を維持してソートする箇所については、
-            y 座標を 1/10 で比較することで、10px 以内のズレを同一値とみなし、左右の並び順を維持している。
     
     """
     
@@ -150,15 +147,7 @@ def find_text_and_bounding_box(img_bw: np.ndarray, img_OCR: np.ndarray, filename
     # 保存したインデックス番目のテキストと座標を削除
     text_result = [splitted_txt[i] for i in range(len(splitted_txt)) if i not in delete_index]
     bounding_box_result = [res[i].position for i in range(len(res)) if i not in delete_index]
-    
-    # 抽出文字とバウンディングボックスの関係性を維持してソート
-    sorted_indices, sorted_values = zip(*sorted(enumerate(bounding_box_result), key=lambda x: (x[1][0][1] // 10, x[1][0][0], x[1][0][0])))
-    
-    # それぞれをソート後の結果に更新
-    text_result = [text_result[i] for i in sorted_indices]
-    bounding_box_result = [bounding_box_result[i] for i in sorted_indices]
 
-    # ソート後の結果を表示
     for i, line in enumerate(text_result):
         print(f'string[{i}] {bounding_box_result[i]} : {text_result[i]}') # 座標と文字列を出力
         cv2.rectangle(img_OCR, bounding_box_result[i][0], bounding_box_result[i][1], (0, 0, 255), 1) # 検出した箇所を赤枠で囲む
@@ -178,7 +167,7 @@ def main():
 
     try:
         #input_path = './sample/sample6.png'
-        input_path = './sample/sample.png'
+        input_path = './sample/blur_sample3.png'
 
         #input_path =  './sample/P/3．入出退健康管理簿.pdf'
         #input_path =  './sample/P/13-3-18 入出退健康管理簿（確認印欄あり）.pdf'
