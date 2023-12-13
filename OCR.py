@@ -181,6 +181,8 @@ def main():
         #input_path =  './sample/P/3．入出退健康管理簿.pdf'
         #input_path =  './sample/P/13-3-18 入出退健康管理簿（確認印欄あり）.pdf'
         #input_path =  './sample/P/20230826_富士瓦斯資料_設備保安点検01.pdf'
+        #input_path = './sample/P/（158-000306）自動車保険契約内容変更依頼書/作成/【ベース】AA300319_1-1.jpg'
+        #input_path = './sample/P/（158-000306）自動車保険契約内容変更依頼書/作成/変更_AA300319.pdf'
 
         #input_path = './sample/sample.png'
         #input_path = './sample/P/02稟議書_/A281新卒者採用稟議書.png'

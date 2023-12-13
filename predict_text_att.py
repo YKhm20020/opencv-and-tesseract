@@ -19,17 +19,29 @@ def predict_text_attribute(tokenizer, model, txt: str) -> str:
             txt (str): 抽出した文字
         
         Returns:
-            att (str): 推測した属性
+            str: 推測した属性
             
         Note:
             tokenizer: <class 'transformers.models.llama.tokenization_llama_fast.LlamaTokenizerFast'> 
             model: <class 'auto_gptq.modeling.llama.LlamaGPTQForCausalLM'>
+            
+            返答から抽出文字を削除する際、最初のひとつ目に限定することで、
+            データ型として判定した結果が変換されることを防ぐ。
+            傾向として、抽出文字が返答に含まれるのは、出力の先頭であることが多い。
     
     """
     
+    # 属性が明らかな場合は、推測前に抽出文字をそのまま属性として返す。
+    if txt == '日付':
+        return 'date'
+    elif txt == '数値':
+        return 'number'
+    elif txt == '文字列':
+        return 'text'
+    
     # プロンプトの記述
-    instruction = "書類の項目として、記入欄がどのデータ型にあたるかを選択してください。名前や住所や状態は文字列、期間や期限や時間は日付、経費や金額や個数は数値のように答えてください。"
-    input = f"「{txt}」という欄がどのデータ型に該当するかを、日付、文字列、数値、単一選択、複数選択の中から最も適切なものを選んでください。"
+    instruction = "書類の項目として、記入欄がどのデータ型にあたるかを選択してください。名前や住所や状態は文字列、期間や期限や時間は日付、経費や金額や個数は数値のように、短く答えてください。"
+    input = f"「{txt}」という欄がどのデータ型に該当するかを、日付、文字列、数値の中から最も適切なものを選んでください。不明の場合は、不明としてください。"
     
     context = [
         {
@@ -56,19 +68,32 @@ def predict_text_attribute(tokenizer, model, txt: str) -> str:
     with torch.no_grad():
         output_ids = model.generate(
             input_ids=token_ids.to(model.device),
-            max_new_tokens=20,
+            max_new_tokens=100,
             do_sample=True,
-            temperature=0.5,
+            temperature=0.6,
             pad_token_id=tokenizer.pad_token_id,
             bos_token_id=tokenizer.bos_token_id,
             eos_token_id=tokenizer.eos_token_id
         )
 
-    att = tokenizer.decode(output_ids.tolist()[0])
-    att = att.replace("</s>", "")
-    att = att.split("システム: ")[1]
-    print(att)
+    output = tokenizer.decode(output_ids.tolist()[0])
+    output = output.replace("</s>", "")
+    output = output.split("システム: ")[1]
+    print(output)
     
+    # 判定属性の補正
+    # 返答から抽出文字を削除（最初のひとつ目に限定）
+    output.replace(txt, '', 1)
+    
+    if '日' in output:
+        att = 'date'
+    elif '数' in output:
+        att = 'number'
+    else:
+        att = 'string'
+        
+    print(att)
+        
     return att
     
     
@@ -90,8 +115,12 @@ def link_attribute_to_text(tokenizer, model, txts: str) -> List[str]:
             model: <class 'auto_gptq.modeling.llama.LlamaGPTQForCausalLM'>
     
     """
-    
-    return [predict_text_attribute(tokenizer, model, txt) for txt in tqdm(txts)]
+    att_with_text = [predict_text_attribute(tokenizer, model, txt) for txt in tqdm(txts)]
+
+    for i in range(len(att_with_text)):
+        print(f'att[{i}]: {att_with_text[i]} ({txts[i]})')
+
+    return att_with_text
 
 
 def main():
@@ -138,9 +167,6 @@ def main():
     print('\nstarting attributes prediction')
     
     text_attributes = link_attribute_to_text(tokenizer, model, texts)
-    
-    for i in range(len(text_attributes)):
-        print(f'att[{i}]: {text_attributes[i]} ({texts[i]})')
     
 
 

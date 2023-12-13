@@ -2,7 +2,6 @@ import os
 import sys
 from typing import List, Tuple
 import numpy as np
-import torch
 from transformers import AutoTokenizer
 from auto_gptq import AutoGPTQForCausalLM
 from detect_area import create_area_directories, load_area_image, process_image_area, find_rectangles, find_underlines
@@ -68,22 +67,50 @@ def text_extraction(input_img: np.ndarray, filename: str) -> Tuple[List[str], Li
     return txts, b_boxes
 
 
-def label_prediction(rects, txts, b_boxes):
+def label_prediction(rects: np.ndarray, underlines: List[np.ndarray], txts: str, b_boxes: List[np.ndarray]) -> Tuple[List[str], List[str]]:
+    """ 領域のラベルを決定する関数
     
-    # # モデルの読み込み
-    # tokenizer = AutoTokenizer.from_pretrained("rinna/youri-7b-chat-gptq")
-    # model = AutoGPTQForCausalLM.from_quantized("rinna/youri-7b-chat-gptq", use_safetensors=True)
+    推測した文字の属性から、領域のラベルを決定する関数。
     
-    rect_labels = ['text' for _ in rects]
-    underline_labels = ['text' for _ in b_boxes]
-    
-    # text_atts = link_attribute_to_text(tokenizer, model, txts)
-    
-    # b_box_centers = []
-    
-    # for i, rect in enumerate(rects):
+        Args:
+            rects (numpy.ndarray): 矩形領域の各頂点の x, y 座標
+            underlines (List[numpy.ndarray]): 下線の両端点の座標
+            txts (str): 抽出した文字
+            b_boxes (List[numpy.ndarray]): 抽出文字を囲うバウンディングボックス
         
-    #     if rect[0][0] b_boxes
+        Returns:
+            Tuple[List[str], List[str]]: 矩形領域のラベル、下線部領域のラベル
+            
+        Note:
+            rect_labels: 矩形領域のラベル
+            underline_labels: 下線部領域のラベル
+    
+    """
+
+    # モデルの読み込み
+    tokenizer = AutoTokenizer.from_pretrained("rinna/youri-7b-chat-gptq")
+    model = AutoGPTQForCausalLM.from_quantized("rinna/youri-7b-chat-gptq", use_safetensors=True) 
+    
+    text_atts = link_attribute_to_text(tokenizer, model, txts)
+    
+    # バウンディングボックスの中心点の座標
+    b_box_centers = [((b_box[0][0] + b_box[1][0]) / 2, (b_box[0][1] + b_box[1][1]) / 2) for b_box in b_boxes]
+    
+    if rects is None:
+        rect_labels = None
+    else:
+        rect_labels = ['string' for _ in rects]
+        for i in range(len(b_box_centers)):
+            if sum(b_box_centers[i]) < sum(rects[i][2]):
+                rect_labels[i] = text_atts[i]
+            
+    if underlines is None:
+        underline_labels = None
+    else:
+        underline_labels = ['string' for _ in underlines]
+        for i in range(len(b_box_centers)):
+            if sum(b_box_centers[i]) < sum(underlines[i]):
+                underline_labels[i] = text_atts[i]
     
     return rect_labels, underline_labels
 
@@ -110,17 +137,22 @@ def main():
     rect_coordinates, underline_coordinates = area_detection(input_path, filename)
     texts, bounding_box_coordinates = text_extraction(input_path, filename)
     
-    rect_area_labels, underline_area_labels = label_prediction(rect_coordinates, texts, bounding_box_coordinates)
+    print('\nstart label prediction')
+    rect_area_labels, underline_area_labels = label_prediction(rect_coordinates, underline_coordinates, texts, bounding_box_coordinates)
     
     print()
     
-    if rect_coordinates is not None:
+    if rect_coordinates is None:
+        print('No rect labels because there are no rects')
+    else:
         for i, label in enumerate(rect_area_labels):
             print(f'rect_label[{i}]: {label}')
         
     print()
     
-    if underline_area_labels is not None:
+    if underline_area_labels is None:
+        print('No underline labels because there are no underlines')
+    else:
         for i, label in enumerate(underline_area_labels):
             print(f'underline_label[{i}]: {label}')
     
