@@ -32,15 +32,19 @@ def predict_text_attribute(tokenizer, model, txt: str) -> str:
     """
     
     # 属性が明らかな場合は、推測前に抽出文字をそのまま属性として返す。
-    if txt == '日付':
+    date_candidate = ['年', '月', '日', '年月日', '生年月日', '期間', '期限']
+    number_candidate = ['個数', '金額', '単価']
+    string_candidate = ['住所', '氏名']
+    
+    if txt == '日付' or txt in date_candidate:
         return 'date'
-    elif txt == '数値':
+    elif txt == '数値' or txt in number_candidate:
         return 'number'
-    elif txt == '文字列':
-        return 'text'
+    elif txt == '文字列' or txt in string_candidate:
+        return 'string'
     
     # プロンプトの記述
-    instruction = "書類の項目として、記入欄がどのデータ型にあたるかを選択してください。名前や住所や状態は文字列、期間や期限や時間は日付、経費や金額や個数は数値のように、短く答えてください。"
+    instruction = "書類の項目として、記入欄がどのデータ型にあたるかを選択してください。氏名は文字列、時間は日付、個数は数値のように、短く答えてください。"
     input = f"「{txt}」という欄がどのデータ型に該当するかを、日付、文字列、数値の中から最も適切なものを選んでください。不明の場合は、不明としてください。"
     
     context = [
@@ -68,7 +72,7 @@ def predict_text_attribute(tokenizer, model, txt: str) -> str:
     with torch.no_grad():
         output_ids = model.generate(
             input_ids=token_ids.to(model.device),
-            max_new_tokens=100,
+            max_new_tokens=50,
             do_sample=True,
             temperature=0.6,
             pad_token_id=tokenizer.pad_token_id,
@@ -129,7 +133,7 @@ def main():
     
     try:
         #input_path = './sample/sample4.jpg'
-        input_path = './sample/sample.png'
+        input_path = './sample/sample.jpg'
         
         #input_path =  './sample/P/3．入出退健康管理簿.pdf'
         #input_path =  './sample/P/13-3-18 入出退健康管理簿（確認印欄あり）.pdf'

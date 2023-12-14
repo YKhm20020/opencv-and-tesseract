@@ -96,29 +96,33 @@ def label_prediction(rects: np.ndarray, underlines: List[np.ndarray], txts: str,
     # バウンディングボックスの中心点の座標
     b_box_centers = [((b_box[0][0] + b_box[1][0]) / 2, (b_box[0][1] + b_box[1][1]) / 2) for b_box in b_boxes]
     
+    # 矩形領域のラベル付け
     if rects is None:
         rect_labels = None
     else:
         rect_labels = ['string' for _ in rects]
         for i in range(len(b_box_centers)):
-            if sum(b_box_centers[i]) < sum(rects[i][2]):
-                rect_labels[i] = text_atts[i]
-            
+            for j in range(len(rects)):
+                if b_box_centers[i][0] < rects[j][2][0] and b_box_centers[i][1] < rects[j][2][1]:
+                    rect_labels[j] = text_atts[i]
+    
+    # 下線部領域のラベル付け
     if underlines is None:
         underline_labels = None
     else:
         underline_labels = ['string' for _ in underlines]
         for i in range(len(b_box_centers)):
-            if sum(b_box_centers[i]) < sum(underlines[i]):
-                underline_labels[i] = text_atts[i]
+            for j in range(len(underlines)):
+                if b_box_centers[i][0] < underlines[j][0] and b_box_centers[i][1] < underlines[j][1]:
+                    underline_labels[j] = text_atts[i]
     
     return rect_labels, underline_labels
 
     
 def main():
     try:
-        #input_path = './sample/sample4.jpg'
-        input_path = './sample/sample.png'
+        input_path = './sample/sample4.jpg'
+        #input_path = './sample/sample.png'
         
         #input_path =  './sample/P/3．入出退健康管理簿.pdf'
         #input_path =  './sample/P/13-3-18 入出退健康管理簿（確認印欄あり）.pdf'
