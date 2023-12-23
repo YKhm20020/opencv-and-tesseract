@@ -55,7 +55,6 @@ def export_underlines_data(data: List[np.ndarray], file_name: str) -> None:
     data_path = './data/underlines'
     
     # JSON ファイルにエクスポート
-    labels = ["left", "right"]
     formatted_data = {}
     
     for idx, underline_coords in enumerate(data):
@@ -126,3 +125,28 @@ def export_OCR_data(txt: List[str], b_box: List[np.ndarray], file_name: str) -> 
             top_left = bb[0]
             bottom_right = bb[1]
             writer.writerow([t, top_left[0], top_left[1], bottom_right[0], bottom_right[1]])
+            
+
+def export_label_data(r_labels: str, rects: np.ndarray, u_labels: str, underlines: List[np.ndarray], file_name: str) -> None:
+    """ 実行結果をファイルにエクスポートする関数
+    
+    付与したラベルとその領域の座標を、json, csv ファイルとしてエクスポートする関数
+    
+        Args:
+            r_labels (str): 矩形領域に付与したラベル
+            rects (numpy.ndarray): 矩形領域の頂点座標を格納したリスト
+            u_labels (str): 下線部領域に付与したラベル
+            underlines (List[numpyp.ndarray]): 下線の両端点の座標を格納したリスト
+            file_name (str): 元画像のファイル名
+    
+    """
+    
+    data_path = './data/labels'
+    
+    # 辞書形式に整形
+    rect_label_data = [{"rect_label": r_label, "rect": r} for r_label, r in zip(r_labels, rects)]
+    underline_label_data = [{"rect_label": u_label, "underline": u} for u_label, u in zip(u_labels, underlines)]
+    
+    # JSON ファイルにエクスポート
+    with open(f'{data_path}/json/labels_data_{file_name}.json', 'w', encoding='utf_8_sig') as f:
+        json.dump({"rects_data": rect_label_data, "underlines_data": underline_label_data}, f, indent=4, ensure_ascii=False)

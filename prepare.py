@@ -29,6 +29,15 @@ def create_OCR_directories() -> None:
     os.makedirs('./data/OCR/txt', exist_ok=True)
     os.makedirs('./data/OCR/json', exist_ok=True)
     os.makedirs('./data/OCR/csv', exist_ok=True)
+    
+def create_label_directories() -> None:
+    """ 文字抽出に関するディレクトリを作成する関数
+    
+    ラベル付与の実行結果としてエクスポートするディレクトリを作成する
+
+    """
+    os.makedirs('./data/labels/json', exist_ok=True)
+    os.makedirs('./data/labels/csv', exist_ok=True)
 
 
 def load_area_image(image_path: str) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:

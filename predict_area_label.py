@@ -4,9 +4,11 @@ from typing import List, Tuple
 import numpy as np
 from transformers import AutoTokenizer
 from auto_gptq import AutoGPTQForCausalLM
+from prepare import create_label_directories
 from detect_area import create_area_directories, load_area_image, process_image_area, find_rectangles, find_underlines
 from OCR import create_OCR_directories, load_OCR_image, process_image_OCR, find_text_and_bounding_box
 from predict_text_att import link_attribute_to_text
+from export_data import export_label_data
 
 def area_detection(input_img: np.ndarray, filename: str) -> Tuple[np.ndarray, List[np.ndarray]]:
     """ 領域検出機能を動作させる関数
@@ -67,7 +69,7 @@ def text_extraction(input_img: np.ndarray, filename: str) -> Tuple[List[str], Li
     return txts, b_boxes
 
 
-def label_prediction(rects: np.ndarray, underlines: List[np.ndarray], txts: str, b_boxes: List[np.ndarray]) -> Tuple[List[str], List[str]]:
+def label_prediction(rects: np.ndarray, underlines: List[np.ndarray], txts: str, b_boxes: List[np.ndarray], file_name: str) -> Tuple[List[str], List[str]]:
     """ 領域のラベルを決定する関数
     
     推測した文字の属性から、領域のラベルを決定する関数。
@@ -77,6 +79,7 @@ def label_prediction(rects: np.ndarray, underlines: List[np.ndarray], txts: str,
             underlines (List[numpy.ndarray]): 下線の両端点の座標
             txts (str): 抽出した文字
             b_boxes (List[numpy.ndarray]): 抽出文字を囲うバウンディングボックス
+            file_name (str): 元画像のファイル名
         
         Returns:
             Tuple[List[str], List[str]]: 矩形領域のラベル、下線部領域のラベル
@@ -115,11 +118,16 @@ def label_prediction(rects: np.ndarray, underlines: List[np.ndarray], txts: str,
             for j in range(len(underlines)):
                 if b_box_centers[i][0] < underlines[j][0] and b_box_centers[i][1] < underlines[j][1]:
                     underline_labels[j] = text_atts[i]
+                    
+    export_label_data(rect_labels, rects, underline_labels, underlines, file_name)
     
     return rect_labels, underline_labels
 
     
 def main():
+    # ディレクトリ作成
+    create_label_directories()
+    
     try:
         input_path = './sample/sample4.jpg'
         #input_path = './sample/sample.png'
@@ -136,10 +144,10 @@ def main():
         print(f"Error: {e}")
         sys.exit()
 
-    filename = os.path.splitext(os.path.basename(input_path))[0]
+    file_name = os.path.splitext(os.path.basename(input_path))[0]
     
-    rect_coordinates, underline_coordinates = area_detection(input_path, filename)
-    texts, bounding_box_coordinates = text_extraction(input_path, filename)
+    rect_coordinates, underline_coordinates = area_detection(input_path, file_name)
+    texts, bounding_box_coordinates = text_extraction(input_path, file_name)
     
     print('\nstart label prediction')
     rect_area_labels, underline_area_labels = label_prediction(rect_coordinates, underline_coordinates, texts, bounding_box_coordinates)
