@@ -41,7 +41,7 @@ def process_image_OCR(input_img: np.ndarray) -> np.ndarray:
     return img_bw
 
 
-def find_text_and_bounding_box(img_bw: np.ndarray, img_OCR: np.ndarray, filename: str) -> Tuple[List[str], List[np.ndarray]]:
+def find_text_and_bounding_box(img_bw: np.ndarray, img_OCR: np.ndarray, file_name: str) -> Tuple[List[str], List[np.ndarray]]:
     """ 抽出文字とバウンディングボックスの座標を検出する関数
     
     Tesseract-OCR より、画像中の文字を抽出し、文字とそのバウンディングボックスの座標を検出する関数
@@ -49,7 +49,7 @@ def find_text_and_bounding_box(img_bw: np.ndarray, img_OCR: np.ndarray, filename
         Args:
             img_bw (numpy.ndarray): エッジ検出後の画像
             img_OCR (numpy.ndarray): 結果出力用の画像
-            filename (str): ファイルの名前
+            file_name (str): ファイルの名前
         
         Returns:
             Tuple[List(str), List(numpy.ndarray)]: 抽出した文字、抽出文字を囲うバウンディングボックス
@@ -163,8 +163,11 @@ def find_text_and_bounding_box(img_bw: np.ndarray, img_OCR: np.ndarray, filename
         cv2.putText(img_OCR, str(i), bounding_box_result[i][0], cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2) # 番号をふる
 
     # 検出結果の画像を表示
-    cv2.imwrite(f'{results_path}/OCR_{filename}.png', img_OCR)
+    cv2.imwrite(f'{results_path}/OCR_{file_name}.png', img_OCR)
     cv2.imwrite(f'img_OCR.png', img_OCR) # 確認用
+    
+    # 動作結果をファイルにエクスポート
+    export_OCR_data(text_result, bounding_box_result, file_name)
 
     return text_result, bounding_box_result
 
@@ -201,7 +204,7 @@ def main():
         print(f"Error: {e}")
         sys.exit()
 
-    filename = os.path.splitext(os.path.basename(input_path))[0]
+    file_name = os.path.splitext(os.path.basename(input_path))[0]
 
     # 入力画像の読み込み
     image_original, image_OCR = load_OCR_image(input_path)
@@ -210,10 +213,7 @@ def main():
     image_bw = process_image_OCR(image_original)
 
     # テキスト抽出とバウンディングボックス検出
-    text, bounding_box = find_text_and_bounding_box(image_bw, image_OCR, filename)
-    
-    # 動作結果をファイルにエクスポート
-    export_OCR_data(text, bounding_box)
+    text, bounding_box = find_text_and_bounding_box(image_bw, image_OCR, file_name)
     
     
     

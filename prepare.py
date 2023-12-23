@@ -13,10 +13,8 @@ def create_area_directories() -> None:
     """
     os.makedirs('./results/rects', exist_ok = True)
     os.makedirs('./results/underlines', exist_ok=True)
-    os.makedirs('./data/rects/txt', exist_ok=True)
     os.makedirs('./data/rects/json', exist_ok=True)
     os.makedirs('./data/rects/csv', exist_ok=True)
-    os.makedirs('./data/underlines/txt', exist_ok=True)
     os.makedirs('./data/underlines/json', exist_ok=True)
     os.makedirs('./data/underlines/csv', exist_ok=True)
     

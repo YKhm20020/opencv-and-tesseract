@@ -89,7 +89,7 @@ def sort_points(points: np.ndarray) -> List[np.ndarray]:
     return [tl, tr, br, bl]
 
 
-def find_rectangles(img_bw: np.ndarray, img_rects: np.ndarray, filename: str) -> np.ndarray:
+def find_rectangles(img_bw: np.ndarray, img_rects: np.ndarray, file_name: str) -> np.ndarray:
     """ 矩形領域の座標を検出する関数
 
     矩形領域の各頂点の x, y 座標を検出する関数
@@ -97,7 +97,7 @@ def find_rectangles(img_bw: np.ndarray, img_rects: np.ndarray, filename: str) ->
         Args:
             img_bw (numpy.ndarray): 膨張処理後の画像
             img_rects (numpy.ndarray): 結果出力用の画像
-            filename (str): ファイルの名前
+            file_name (str): ファイルの名前
             
         Returns:
             rects_sorted_memory (numpy.ndarray): 矩形領域の座標を記録したリスト
@@ -146,19 +146,19 @@ def find_rectangles(img_bw: np.ndarray, img_rects: np.ndarray, filename: str) ->
     print()
     
     results_path = './results/rects'
-    cv2.imwrite(f'{results_path}/rects_{filename}.png', img_rects) # 結果を描画した画像の保存
+    cv2.imwrite(f'{results_path}/rects_{file_name}.png', img_rects) # 結果を描画した画像の保存
     cv2.imwrite('img.png', img_rects) # 一時確認用
 
     rect_sorted_memory = np.array(rect_sorted_memory)
     rect_sorted_list = rect_sorted_memory.tolist()
     
     # 矩形領域の座標をファイルにエクスポート
-    export_rects_data(rect_sorted_list)
+    export_rects_data(rect_sorted_list, file_name)
     
     return rect_sorted_memory
 
 
-def find_underlines(img_edges: np.ndarray, img_underline: np.ndarray, rect_sorted_memory: np.ndarray, retval: float, filename: str) -> List[np.ndarray]:
+def find_underlines(img_edges: np.ndarray, img_underline: np.ndarray, rect_sorted_memory: np.ndarray, retval: float, file_name: str) -> List[np.ndarray]:
     """ 下線部領域の座標を検出する関数
     
     下線の両端点の x, y 座標を出力する関数
@@ -168,7 +168,7 @@ def find_underlines(img_edges: np.ndarray, img_underline: np.ndarray, rect_sorte
             img_underline (numpy.ndarray): 結果出力用の画像
             rect_sorted_memory (numpy.ndarray): 矩形領域の座標を記録したリスト
             retval (float): 二値化で決定した閾値
-            filename (str): ファイルの名前
+            file_name (str): ファイルの名前
             
         Returns:
             List[numpy.ndarray]: 下線の両端点の座標
@@ -261,13 +261,13 @@ def find_underlines(img_edges: np.ndarray, img_underline: np.ndarray, rect_sorte
                 print(f'line({i}):\n{unique_horizontal_nparray[i]}')
 
         results_path = './results/underlines'
-        cv2.imwrite(f'{results_path}/underline_{filename}.png', img_underline)
+        cv2.imwrite(f'{results_path}/underline_{file_name}.png', img_underline)
         cv2.imwrite('img_underline.png', img_underline) # 確認用
         
         unique_horizontal_list = unique_horizontal_nparray.tolist()
         
         # 下線部領域の座標をファイルにエクスポート
-        export_underlines_data(unique_horizontal_list)
+        export_underlines_data(unique_horizontal_list, file_name)
         
         return unique_horizontal_list
 
@@ -282,9 +282,9 @@ def main():
         #input_path =  './sample/P/13-3-18 入出退健康管理簿（確認印欄あり）.pdf'
         #input_path =  './sample/P/20230826_富士瓦斯資料_設備保安点検01.pdf'
 
-        # input_path = './sample/deblur_sample9.png'
+        input_path = './sample/sample2.jpg'
         #input_path = './sample/P/（158-000306）自動車保険契約内容変更依頼書/作成/【ベース】AA300319_1-1.jpg'
-        input_path = './sample/P/（158-000306）自動車保険契約内容変更依頼書/作成/変更_AA300319.pdf'
+        #input_path = './sample/P/（158-000306）自動車保険契約内容変更依頼書/作成/変更_AA300319.pdf'
         #input_path = './sample/P/02稟議書_/A281新卒者採用稟議書.png'
         #input_path = './sample/P/02稟議書_/A282広告出稿稟議書.png'
         #input_path = './sample/P/02稟議書_/A321稟議書.png'
@@ -302,13 +302,13 @@ def main():
         sys.exit()
         
     # 入力画像の読み込み
-    filename = os.path.splitext(os.path.basename(input_path))[0]
+    file_name = os.path.splitext(os.path.basename(input_path))[0]
     image_original, image_rects, image_underline = load_area_image(input_path)
 
     # 画像処理と領域取得
     image_bw, image_edges, retval = process_image_area(image_original)
-    rect_coords = find_rectangles(image_bw, image_rects, filename)
-    underline_coords = find_underlines(image_edges, image_underline, rect_coords, retval, filename)
+    rect_coords = find_rectangles(image_bw, image_rects, file_name)
+    underline_coords = find_underlines(image_edges, image_underline, rect_coords, retval, file_name)
 
 if __name__ == "__main__":
     main()
