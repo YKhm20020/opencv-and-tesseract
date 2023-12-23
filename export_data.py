@@ -55,14 +55,15 @@ def export_underlines_data(data: List[np.ndarray], file_name: str) -> None:
     data_path = './data/underlines'
     
     # JSON ファイルにエクスポート
-    labels = ["left_x", "left_y", "right_x", "right_y"]
+    labels = ["left", "right"]
     formatted_data = {}
     
     print(data)
     
     for idx, underline_coords in enumerate(data):
         formatted_data[f"underline{idx}"] = {
-            labels[i]: int(underline_coords[i]) for i in range(len(labels))
+            "left": {"x": int(underline_coords[0]), "y": int(underline_coords[1])},
+            "right": {"x": int(underline_coords[2]), "y": int(underline_coords[3])}
         }
         
     with open(f'{data_path}/json/underlines_data_{file_name}.json', 'w', encoding='utf_8_sig') as f:
