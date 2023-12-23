@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Dict, Union
 import numpy as np
 import json
 import csv
@@ -58,8 +58,6 @@ def export_underlines_data(data: List[np.ndarray], file_name: str) -> None:
     labels = ["left", "right"]
     formatted_data = {}
     
-    print(data)
-    
     for idx, underline_coords in enumerate(data):
         formatted_data[f"underline{idx}"] = {
             "left": {"x": int(underline_coords[0]), "y": int(underline_coords[1])},
@@ -73,11 +71,11 @@ def export_underlines_data(data: List[np.ndarray], file_name: str) -> None:
     with open(f'{data_path}/csv/underlines_data_{file_name}.csv', 'w', encoding='utf_8_sig', newline='') as f:
         writer = csv.writer(f)
         # ヘッダーを書き込む
-        writer.writerow(["Underline"] + labels)
+        writer.writerow(["Underline", "left_x", "left_y", "right_x", "right_y"])
+        
         # データを書き込む
         for idx, underline_coords in enumerate(data):
-            writer.writerow([f"underline{idx}"] + [int(coord) for coord in underline_coords])        
-        writer.writerow(data)
+            writer.writerow([f"underline{idx}"] + [int(coord) for coord in underline_coords])
 
        
 def export_OCR_data(txt: List[str], b_box: List[np.ndarray], file_name: str) -> None:
@@ -92,11 +90,26 @@ def export_OCR_data(txt: List[str], b_box: List[np.ndarray], file_name: str) -> 
     
     """
     
+    def format_bounding_box(bounding_box: np.ndarray) -> Dict[str, Dict[str, Union[int, int]]]:
+        """バウンディングボックスを指定の形式に整形する関数
+        
+        Args:
+            bounding_box (numpy.ndarray): バウンディングボックスの座標
+        
+        Returns:
+            Dict[str, Dict[str, Union[int, int]]]: 整形されたバウンディングボックス
+        """
+        return {
+            "top_left": {"x": int(bounding_box[0][0]), "y": int(bounding_box[0][1])},
+            "bottom_right": {"x": int(bounding_box[1][0]), "y": int(bounding_box[1][1])}
+        }
+
+    
     data_path = './data/OCR'
     
     # 辞書形式に整形
-    ocr_data = [{"text": t, "bounding_box": bb} for t, bb in zip(txt, b_box)]
-    
+    ocr_data = [{"text": t, "bounding_box": format_bounding_box(bb)} for t, bb in zip(txt, b_box)]
+  
     # JSON ファイルにエクスポート
     with open(f'{data_path}/json/ocr_data_{file_name}.json', 'w', encoding='utf_8_sig') as f:
         json.dump(ocr_data, f, ensure_ascii=False, indent=4)
@@ -106,8 +119,10 @@ def export_OCR_data(txt: List[str], b_box: List[np.ndarray], file_name: str) -> 
     with open(f'{data_path}/csv/ocr_data_{file_name}.csv', 'w', encoding='utf_8_sig', newline='') as f:
         writer = csv.writer(f)
         # ヘッダーを書き込む
-        writer.writerow(["Text", "Bounding Box"])
+        writer.writerow(["Text", "Top Left X", "Top Left Y", "Bottom Right X", "Bottom Right Y"])
         
         # データを書き込む
         for t, bb in zip(txt, b_box):
-            writer.writerow([t, bb])
+            top_left = bb[0]
+            bottom_right = bb[1]
+            writer.writerow([t, top_left[0], top_left[1], bottom_right[0], bottom_right[1]])
