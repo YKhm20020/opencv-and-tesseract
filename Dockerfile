@@ -93,6 +93,10 @@ RUN pip install glog
 RUN pip install tensorboardx
 RUN pip install fire
 
-# install for GUI
+# install for Tkinter GUI
 RUN apt-get install -y python3-tk
+RUN pip install ttkthemes
+# RUN pip install --upgrade Pillow
+RUN apt install -y fonts-ipafont \
+    && apt install  -y fonts-ipaexfont
 RUN apt-get update
