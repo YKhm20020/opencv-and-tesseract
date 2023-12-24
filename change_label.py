@@ -15,19 +15,30 @@ class ImageProcessor:
         self.main_frame = tk.Frame(root)
         self.main_frame.pack(fill=tk.BOTH, expand=True)
 
-        self.scroll_frame = tk.Frame(self.main_frame)
-        self.scroll_frame.pack(fill=tk.BOTH, expand=True)
-
-        self.canvas = tk.Canvas(self.scroll_frame, highlightthickness=0)
-        self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        self.canvas_frame = tk.Frame(self.main_frame)
+        self.canvas_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         
-        self.x_scrollbar = tk.Scrollbar(self.main_frame, command=self.canvas.xview, orient=tk.HORIZONTAL)
-        self.x_scrollbar.pack(side=tk.BOTTOM, fill=tk.X)
+        self.toolbar_frame = tk.Frame(self.main_frame)
+        self.toolbar_frame.pack()
 
-        self.y_scrollbar = tk.Scrollbar(self.scroll_frame, command=self.canvas.yview)
+        self.x_scrollbar = tk.Scrollbar(self.canvas_frame, orient=tk.HORIZONTAL)
+        self.x_scrollbar.pack(side=tk.BOTTOM, fill=tk.X)
+        
+        # 「参照」ボタンを作成し、関連するコマンドを指定
+        self.browse_button = tk.Button(self.toolbar_frame, text="参照", command=self.browse_image)
+        self.browse_button.pack(side=tk.TOP)
+
+        self.y_scrollbar = tk.Scrollbar(self.canvas_frame, orient=tk.VERTICAL)
         self.y_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
-        self.canvas.config(xscrollcommand=self.x_scrollbar.set, yscrollcommand=self.y_scrollbar.set)
+        self.canvas = tk.Canvas(self.canvas_frame, xscrollcommand=self.x_scrollbar.set, yscrollcommand=self.y_scrollbar.set, highlightthickness=0)
+        self.canvas.pack(fill=tk.BOTH, expand=True)
+        
+
+
+        self.x_scrollbar.config(command=self.canvas.xview)
+        self.y_scrollbar.config(command=self.canvas.yview)
+
         self.canvas.bind("<Configure>", self.on_canvas_configure)
 
         self.load_image()
@@ -61,6 +72,15 @@ class ImageProcessor:
 
     def on_canvas_configure(self, event):
         self.canvas.config(scrollregion=self.canvas.bbox("all"))
+
+    def browse_image(self):
+        new_image_path = filedialog.askopenfilename(
+            title="Select Image",
+            filetypes=[("Image files", "*.png *.jpg *.jpeg"), ("PNG", "*.png"), ("JPEG", "*.jpg")]
+        )
+        if new_image_path:
+            self.image_path = new_image_path
+            self.load_image()
 
 if __name__ == "__main__":
     root = ThemedTk(theme="clam")
