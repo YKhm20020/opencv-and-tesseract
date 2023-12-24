@@ -92,3 +92,7 @@ RUN pip install tqdm
 RUN pip install glog
 RUN pip install tensorboardx
 RUN pip install fire
+
+# install for GUI
+RUN apt-get install -y python3-tk
+RUN apt-get update
