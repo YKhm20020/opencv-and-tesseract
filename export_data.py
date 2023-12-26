@@ -143,10 +143,54 @@ def export_label_data(r_labels: str, rects: np.ndarray, u_labels: str, underline
     
     data_path = './data/labels'
     
-    # 辞書形式に整形
-    rect_label_data = [{"rect_label": r_label, "rect": r} for r_label, r in zip(r_labels, rects)]
-    underline_label_data = [{"rect_label": u_label, "underline": u} for u_label, u in zip(u_labels, underlines)]
+    # rects も underlines も検出した場合
+    if rects is not None and underlines is not None:
+        # rects を辞書形式に整形
+        rect_label_data = []
+        for i, (r_label, r) in enumerate(zip(r_labels, rects)):
+            rect_dict = {f"rect{i}": {"rect_label": r_label}}
+            for j, point_name in enumerate(["top_left", "bottom_left", "bottom_right", "top_right"]):
+                point_dict = {"x": int(r[j, 0]), "y": int(r[j, 1])}
+                rect_dict[f"rect{i}"][f"{point_name}"] = point_dict
+            rect_label_data.append(rect_dict)
+        
+        underline_label_data = [{"underline_label": u_label, "underline": u} for u_label, u in zip(u_labels, underlines)]
+        
+        # JSON ファイルにエクスポート
+        with open(f'{data_path}/json/labels_data_{file_name}.json', 'w', encoding='utf_8_sig') as f:
+            json.dump({"rects_data": rect_label_data, "underlines_data": underline_label_data}, f, indent=4, ensure_ascii=False)
     
-    # JSON ファイルにエクスポート
-    with open(f'{data_path}/json/labels_data_{file_name}.json', 'w', encoding='utf_8_sig') as f:
-        json.dump({"rects_data": rect_label_data, "underlines_data": underline_label_data}, f, indent=4, ensure_ascii=False)
+    
+    # rects のみを検出した場合
+    elif rects is not None and underlines is None:
+        print('underline labels are not exported')
+        
+        # rects を辞書形式に整形
+        rect_label_data = []
+        for i, (r_label, r) in enumerate(zip(r_labels, rects)):
+            rect_dict = {f"rect{i}": {"rect_label": r_label}}
+            for j, point_name in enumerate(["top_left", "bottom_left", "bottom_right", "top_right"]):
+                point_dict = {"x": int(r[j, 0]), "y": int(r[j, 1])}
+                rect_dict[f"rect{i}"][f"{point_name}"] = point_dict
+            rect_label_data.append(rect_dict)
+        
+        # JSON ファイルにエクスポート
+        with open(f'{data_path}/json/labels_data_{file_name}.json', 'w', encoding='utf_8_sig') as f:
+            json.dump({"rects_data": rect_label_data}, f, indent=4, ensure_ascii=False)
+    
+    
+    # underlines のみを検出した場合
+    elif rects is None and underlines is not None:
+        print("rect labels are not exported")
+        
+        # 辞書形式に整形
+        underline_label_data = [{"underline_label": u_label, "underline": u} for u_label, u in zip(u_labels, underlines)]
+        
+        # JSON ファイルにエクスポート
+        with open(f'{data_path}/json/labels_data_{file_name}.json', 'w', encoding='utf_8_sig') as f:
+            json.dump({"underlines_data": underline_label_data}, f, indent=4, ensure_ascii=False)
+            
+    else:
+        # エラー処理: rects および underlines がどちらも None の場合
+        print("Error: rects and underlines are both None.")
+    

@@ -102,6 +102,7 @@ def label_prediction(rects: np.ndarray, underlines: List[np.ndarray], txts: str,
     # 矩形領域のラベル付け
     if rects is None:
         rect_labels = None
+        print('There are no rects and the labels')
     else:
         rect_labels = ['string' for _ in rects]
         for i in range(len(b_box_centers)):
@@ -112,6 +113,7 @@ def label_prediction(rects: np.ndarray, underlines: List[np.ndarray], txts: str,
     # 下線部領域のラベル付け
     if underlines is None:
         underline_labels = None
+        print('There are no underlines and the labels')
     else:
         underline_labels = ['string' for _ in underlines]
         for i in range(len(b_box_centers)):
@@ -129,8 +131,8 @@ def main():
     create_label_directories()
     
     try:
-        input_path = './sample/sample4.jpg'
-        #input_path = './sample/sample.png'
+        #input_path = './sample/sample4.jpg'
+        input_path = './sample/sample.png'
         
         #input_path =  './sample/P/3．入出退健康管理簿.pdf'
         #input_path =  './sample/P/13-3-18 入出退健康管理簿（確認印欄あり）.pdf'
@@ -150,7 +152,7 @@ def main():
     texts, bounding_box_coordinates = text_extraction(input_path, file_name)
     
     print('\nstart label prediction')
-    rect_area_labels, underline_area_labels = label_prediction(rect_coordinates, underline_coordinates, texts, bounding_box_coordinates)
+    rect_area_labels, underline_area_labels = label_prediction(rect_coordinates, underline_coordinates, texts, bounding_box_coordinates, file_name)
     
     print()
     

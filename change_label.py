@@ -26,6 +26,7 @@ class ImageProcessor:
         self.x_scrollbar = tk.Scrollbar(self.canvas_frame, orient=tk.HORIZONTAL)
         self.x_scrollbar.pack(side=tk.BOTTOM, fill=tk.X)
         
+        # 横軸のスクロールバー
         self.y_scrollbar = tk.Scrollbar(self.canvas_frame, orient=tk.VERTICAL)
         self.y_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         
@@ -127,6 +128,8 @@ class ImageProcessor:
         if new_image_path:
             self.image_path = new_image_path
             self.load_image()
+
+
 
 if __name__ == "__main__":
     root = ThemedTk(theme="clam")
