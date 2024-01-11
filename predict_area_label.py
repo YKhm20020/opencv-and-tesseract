@@ -131,8 +131,8 @@ def main():
     create_label_directories()
     
     try:
-        #input_path = './sample/sample4.jpg'
-        input_path = './sample/sample.png'
+        input_path = './sample/sample4.jpg'
+        #input_path = './sample/sample.png'
         
         #input_path =  './sample/P/3．入出退健康管理簿.pdf'
         #input_path =  './sample/P/13-3-18 入出退健康管理簿（確認印欄あり）.pdf'

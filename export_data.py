@@ -154,7 +154,16 @@ def export_label_data(r_labels: str, rects: np.ndarray, u_labels: str, underline
                 rect_dict[f"rect{i}"][f"{point_name}"] = point_dict
             rect_label_data.append(rect_dict)
         
-        underline_label_data = [{"underline_label": u_label, "underline": u} for u_label, u in zip(u_labels, underlines)]
+        # underlines を辞書形式に整形
+        underline_label_data = []
+        for i, (u_label, u) in enumerate(zip(u_labels, underlines)):
+            underline_dict = {f"underline{i}": {"underline_label": u_label}}
+            left_point_dict = {"x": int(u[0][0]), "y": int(u[0][1])}
+            right_point_dict = {"x": int(u[1][0]), "y": int(u[1][1])}
+            underline_dict[f"underline{i}"]["left"] = left_point_dict
+            underline_dict[f"underline{i}"]["right"] = right_point_dict
+            underline_label_data.append(underline_dict)
+
         
         # JSON ファイルにエクスポート
         with open(f'{data_path}/json/labels_data_{file_name}.json', 'w', encoding='utf_8_sig') as f:
