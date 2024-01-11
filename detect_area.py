@@ -55,6 +55,51 @@ def process_image_area(input_img: np.ndarray) -> Tuple[np.ndarray, np.ndarray, f
     
     return img_bw, img_edges, retval
 
+def process_image_underline(input_img: np.ndarray) -> Tuple[np.ndarray, np.ndarray, float]:
+    """ 画像処理を行う関数
+    
+    グレースケール化、ガウシアンフィルタ適用、二値化、膨張処理を行う
+    さらに、下線部認識のみ、エッジ検出を行う
+
+        Args:
+            input_img (numpy.ndarray): 入力画像
+
+        Returns:
+            Tuple[numpy.ndarray, numpy.ndarray, float]: 膨張処理後の画像、エッジ検出後の画像、二値化で決定した閾値
+            
+        Note:
+            img_bw (numpy.ndarray): 膨張処理後の画像
+            img_edges (numpy.ndarray): エッジ検出後の画像
+            retval (float): 二値化で決定した閾値
+
+    """
+    img = input_img.copy()
+    
+    results_path = './results/rects'
+    # BGR -> グレースケール
+    img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    cv2.imwrite(f'{results_path}/0_gray.png', img_gray) # 確認用
+    
+    # 第四引数が cv2.THRESH_TOZERO_INV で直線をひとつ多く検出したことを確認。他サンプルと比較必須。
+    retval, img_bw = cv2.threshold(img_gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    #retval, img_bw = cv2.threshold(img_gray, 0, 255, cv2.THRESH_TOZERO + cv2.THRESH_OTSU)
+    cv2.imwrite(f'{results_path}/1_thresh.png', img_bw) # 確認用
+    
+    # 膨張処理
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
+    #img_bw = cv2.erode(img_bw, kernel, iterations=1)
+    cv2.imwrite(f'{results_path}/2_dilate.png', img_bw) # 確認用
+    
+    # Canny 法によるエッジ検出（下線部検出のみ）
+    results_path = './results/underlines'
+    med_val = np.median(img_bw)
+    sigma = 0.33
+    min_val = int(max(0, (1.0 - sigma) * med_val))
+    max_val = int(max(255, (1.0 + sigma) * med_val))
+    img_edges = cv2.Canny(img_bw, threshold1=min_val, threshold2=max_val, apertureSize=5, L2gradient=True)
+    cv2.imwrite(f'{results_path}/3_edges.png', img_edges) # 確認用
+    
+    return img_edges, retval
 
 
 def sort_points(points: np.ndarray) -> List[np.ndarray]:
@@ -307,6 +352,7 @@ def main():
 
     # 画像処理と領域取得
     image_bw, image_edges, retval = process_image_area(image_original)
+    image_edges, retval = process_image_underline(image_original)
     rect_coords = find_rectangles(image_bw, image_rects, file_name)
     underline_coords = find_underlines(image_edges, image_underline, rect_coords, retval, file_name)
 
