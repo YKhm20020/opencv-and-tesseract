@@ -50,6 +50,7 @@ RUN apt-get install -y nvidia-container-toolkit
 
 # install opencv
 RUN pip install opencv-python
+RUN pip install opencv-contrib-python --upgrade
 RUN pip install numpy
 RUN pip install pandas
 RUN pip install pyocr

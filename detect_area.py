@@ -7,7 +7,7 @@ from prepare import create_area_directories, load_area_image
 from export_data import export_rects_data, export_underlines_data
 
 
-def process_image_rect(input_img: np.ndarray) -> Tuple[np.ndarray, np.ndarray, float]:
+def process_image_rect(input_img: np.ndarray) -> Tuple[np.ndarray, float]:
     """ 画像処理を行う関数
     
     グレースケール化、ガウシアンフィルタ適用、二値化、膨張処理を行う
@@ -21,14 +21,13 @@ def process_image_rect(input_img: np.ndarray) -> Tuple[np.ndarray, np.ndarray, f
             
         Note:
             img_bw (numpy.ndarray): 膨張処理後の画像
-            img_edges (numpy.ndarray): エッジ検出後の画像
             retval (float): 二値化で決定した閾値
 
     """
     
     img = input_img.copy()
-    
     results_path = './results/rects'
+
     # BGR -> グレースケール
     img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     img_gray = cv2.GaussianBlur(img_gray, (3, 3), 0)
@@ -44,15 +43,7 @@ def process_image_rect(input_img: np.ndarray) -> Tuple[np.ndarray, np.ndarray, f
     img_bw = cv2.dilate(img_bw, kernel, iterations=1)
     cv2.imwrite(f'{results_path}/2_dilate.png', img_bw) # 確認用
     
-    # Canny 法によるエッジ検出（下線部検出のみ）
-    med_val = np.median(img_bw)
-    sigma = 0.33
-    min_val = int(max(0, (1.0 - sigma) * med_val))
-    max_val = int(max(255, (1.0 + sigma) * med_val))
-    img_edges = cv2.Canny(img_bw, threshold1=min_val, threshold2=max_val, apertureSize=5, L2gradient=True)
-    cv2.imwrite(f'{results_path}/3_edges.png', img_edges) # 確認用
-    
-    return img_bw, img_edges, retval
+    return img_bw, retval
 
 def process_image_underline(input_img: np.ndarray) -> Tuple[np.ndarray, np.ndarray, float]:
     """ 画像処理を行う関数
@@ -71,9 +62,10 @@ def process_image_underline(input_img: np.ndarray) -> Tuple[np.ndarray, np.ndarr
             retval (float): 二値化で決定した閾値
 
     """
+
     img = input_img.copy()
-    
     results_path = './results/underlines'
+
     # BGR -> グレースケール
     img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     cv2.imwrite(f'{results_path}/0_gray.png', img_gray) # 確認用
@@ -83,15 +75,17 @@ def process_image_underline(input_img: np.ndarray) -> Tuple[np.ndarray, np.ndarr
     #retval, img_bw = cv2.threshold(img_gray, 0, 255, cv2.THRESH_TOZERO + cv2.THRESH_OTSU)
     cv2.imwrite(f'{results_path}/1_thresh.png', img_bw) # 確認用
     
-    # Canny 法によるエッジ検出（下線部検出のみ）
-    med_val = np.median(img_bw)
-    sigma = 0.33
-    min_val = int(max(0, (1.0 - sigma) * med_val))
-    max_val = int(max(255, (1.0 + sigma) * med_val))
-    img_edges = cv2.Canny(img_bw, threshold1=min_val, threshold2=max_val, apertureSize=5, L2gradient=True)
-    cv2.imwrite(f'{results_path}/3_edges.png', img_edges) # 確認用
+    img_bw_inv = cv2.bitwise_not(img_bw)
     
-    return img_edges, retval
+    # Canny 法によるエッジ検出（下線部検出のみ）
+    # med_val = np.median(img_bw_inv)
+    # sigma = 0.33
+    # min_val = int(max(0, (1.0 - sigma) * med_val))
+    # max_val = int(max(255, (1.0 + sigma) * med_val))
+    # img_edges = cv2.Canny(img_bw, threshold1=min_val, threshold2=max_val, apertureSize=5, L2gradient=True)
+    # cv2.imwrite(f'{results_path}/3_edges.png', img_edges) # 確認用
+    
+    return img_bw_inv, retval
 
 
 def sort_points(points: np.ndarray) -> List[np.ndarray]:
@@ -195,13 +189,13 @@ def find_rectangles(img_bw: np.ndarray, img_rects: np.ndarray, file_name: str) -
     return rect_sorted_memory
 
 
-def find_underlines(img_edges: np.ndarray, img_underline: np.ndarray, rect_sorted_memory: np.ndarray, retval: float, file_name: str) -> List[np.ndarray]:
+def find_underlines(img_bw_inv: np.ndarray, img_underline: np.ndarray, rect_sorted_memory: np.ndarray, retval: float, file_name: str) -> List[np.ndarray]:
     """ 下線部領域の座標を検出する関数
     
     下線の両端点の x, y 座標を出力する関数
     
         Args:
-            img_edges (numpy.ndarray): エッジ検出後の画像
+            img_bw_inv (numpy.ndarray): 白黒反転した画像
             img_underline (numpy.ndarray): 結果出力用の画像
             rect_sorted_memory (numpy.ndarray): 矩形領域の座標を記録したリスト
             retval (float): 二値化で決定した閾値
@@ -211,12 +205,36 @@ def find_underlines(img_edges: np.ndarray, img_underline: np.ndarray, rect_sorte
             List[numpy.ndarray]: 下線の両端点の座標
     """
     
-    height, width = img_edges.shape
+    height, width = img_bw_inv.shape
     min_length = width * 0.1
+    
+    length_threshold = 50 # 30 ～ 100
+    distance_threshold = 1.41421356
+    
+    med_val = retval
+    sigma = 0.33  # 0.33
+    min_val = int(max(0, (1.0 - sigma) * med_val))
+    max_val = int(max(255, (1.0 + sigma) * med_val))
+
+    canny_th1 = min_val
+    canny_th2 = max_val
+    canny_aperture_size = 3
+    do_merge = True
+    
+    # print(med_val, min_val, max_val, canny_th1, canny_th2)
 
     # ハフ変換による直線検出
     lines = []
-    lines = cv2.HoughLinesP(img_edges, rho=1, theta=np.pi/360, threshold=int(retval), minLineLength=min_length, maxLineGap=1)
+    # lines = cv2.HoughLinesP(img_edges, rho=1, theta=np.pi/360, threshold=int(retval), minLineLength=min_length, maxLineGap=1)
+    fld = cv2.ximgproc.createFastLineDetector(
+        length_threshold,
+        distance_threshold,
+        canny_th1,
+        canny_th2,
+        canny_aperture_size,
+        do_merge
+    )
+    lines = fld.detect(img_bw_inv)
 
     line_list = []
     same_line_error = 10 # 上下に生成される直線を同一のものと捉える誤差
@@ -226,10 +244,19 @@ def find_underlines(img_edges: np.ndarray, img_underline: np.ndarray, rect_sorte
         return None
     else:
         for line in lines:
-            tl_x, tl_y, br_x, br_y = line[0]
+            left_x, left_y, right_x, right_y = line[0]
+            
+            # createFastLineDetector 関数のみ端点入れ替わるときがあるので、左→右になるよう入れ替え
+            if left_x > right_x:
+                tmp_x, tmp_y = left_x, left_y
+                left_x, left_y = right_x, right_y
+                right_x, right_y = tmp_x, tmp_y
+                # left_x, left_y = left_y, left_x
+                # right_x, right_y = right_y, right_x
+
             # 傾き3px以内で検出対象に
-            if abs(tl_y - br_y) < 3:
-                line_list.append((tl_x, tl_y, br_x, br_y))
+            if abs(left_y - right_y) < 3:
+                line_list.append((left_x, left_y, right_x, right_y))
                 
         line_list = sorted(line_list, key=lambda x: x[0])
         
@@ -343,10 +370,10 @@ def main():
     image_original, image_rects, image_underline = load_area_image(input_path)
 
     # 画像処理と領域取得
-    image_bw, image_edges, retval = process_image_rect(image_original)
-    image_edges, retval = process_image_underline(image_original)
+    image_bw, retval = process_image_rect(image_original)
+    image_bw_inv, retval = process_image_underline(image_original)
     rect_coords = find_rectangles(image_bw, image_rects, file_name)
-    underline_coords = find_underlines(image_edges, image_underline, rect_coords, retval, file_name)
+    underline_coords = find_underlines(image_bw_inv, image_underline, rect_coords, retval, file_name)
 
 if __name__ == "__main__":
     main()

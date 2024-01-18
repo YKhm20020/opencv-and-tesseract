@@ -5,7 +5,7 @@ import numpy as np
 from transformers import AutoTokenizer
 from auto_gptq import AutoGPTQForCausalLM
 from prepare import create_label_directories
-from detect_area import create_area_directories, load_area_image, process_image_area, find_rectangles, find_underlines
+from detect_area import create_area_directories, load_area_image, process_image_rect, process_image_underline, find_rectangles, find_underlines
 from OCR import create_OCR_directories, load_OCR_image, process_image_OCR, find_text_and_bounding_box
 from predict_text_att import link_attribute_to_text
 from export_data import export_label_data
@@ -31,11 +31,12 @@ def area_detection(input_img: np.ndarray, filename: str) -> Tuple[np.ndarray, Li
     img_area_original, img_rects, img_underline = load_area_image(input_img)
 
     # 画像処理
-    img_area_bw, img_area_edges, retval = process_image_area(img_area_original)
+    img_area_bw, retval = process_image_rect(img_area_original)
+    img_area_bw_inv, retval = process_image_underline(img_area_original)
     
     # 領域取得
     rect_coords = find_rectangles(img_area_bw, img_rects, filename)
-    underline_coords = find_underlines(img_area_edges, img_underline, rect_coords, retval, filename)
+    underline_coords = find_underlines(img_area_bw_inv, img_underline, rect_coords, retval, filename)
     
     return rect_coords, underline_coords
 
