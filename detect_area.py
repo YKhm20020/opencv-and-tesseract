@@ -7,7 +7,7 @@ from prepare import create_area_directories, load_area_image
 from export_data import export_rects_data, export_underlines_data
 
 
-def process_image_area(input_img: np.ndarray) -> Tuple[np.ndarray, np.ndarray, float]:
+def process_image_rect(input_img: np.ndarray) -> Tuple[np.ndarray, np.ndarray, float]:
     """ 画像処理を行う関数
     
     グレースケール化、ガウシアンフィルタ適用、二値化、膨張処理を行う
@@ -34,9 +34,9 @@ def process_image_area(input_img: np.ndarray) -> Tuple[np.ndarray, np.ndarray, f
     img_gray = cv2.GaussianBlur(img_gray, (3, 3), 0)
     cv2.imwrite(f'{results_path}/0_gray.png', img_gray) # 確認用
     
-    # 第四引数が cv2.THRESH_TOZERO_INV で直線をひとつ多く検出したことを確認。他サンプルと比較必須。
-    #retval, img_bw = cv2.threshold(img_gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
-    retval, img_bw = cv2.threshold(img_gray, 0, 255, cv2.THRESH_TOZERO_INV + cv2.THRESH_OTSU)
+    # 二値化処理
+    retval, img_bw = cv2.threshold(img_gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+    #retval, img_bw = cv2.threshold(img_gray, 0, 255, cv2.THRESH_TOZERO_INV + cv2.THRESH_OTSU)
     cv2.imwrite(f'{results_path}/1_thresh.png', img_bw) # 確認用
     
     # 膨張処理
@@ -45,7 +45,6 @@ def process_image_area(input_img: np.ndarray) -> Tuple[np.ndarray, np.ndarray, f
     cv2.imwrite(f'{results_path}/2_dilate.png', img_bw) # 確認用
     
     # Canny 法によるエッジ検出（下線部検出のみ）
-    results_path = './results/underlines'
     med_val = np.median(img_bw)
     sigma = 0.33
     min_val = int(max(0, (1.0 - sigma) * med_val))
@@ -58,8 +57,7 @@ def process_image_area(input_img: np.ndarray) -> Tuple[np.ndarray, np.ndarray, f
 def process_image_underline(input_img: np.ndarray) -> Tuple[np.ndarray, np.ndarray, float]:
     """ 画像処理を行う関数
     
-    グレースケール化、ガウシアンフィルタ適用、二値化、膨張処理を行う
-    さらに、下線部認識のみ、エッジ検出を行う
+    グレースケール化、二値化、膨張処理、エッジ検出を行う
 
         Args:
             input_img (numpy.ndarray): 入力画像
@@ -68,30 +66,24 @@ def process_image_underline(input_img: np.ndarray) -> Tuple[np.ndarray, np.ndarr
             Tuple[numpy.ndarray, numpy.ndarray, float]: 膨張処理後の画像、エッジ検出後の画像、二値化で決定した閾値
             
         Note:
-            img_bw (numpy.ndarray): 膨張処理後の画像
+            img_bw (numpy.ndarray): 二値化処理後の画像
             img_edges (numpy.ndarray): エッジ検出後の画像
             retval (float): 二値化で決定した閾値
 
     """
     img = input_img.copy()
     
-    results_path = './results/rects'
+    results_path = './results/underlines'
     # BGR -> グレースケール
     img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     cv2.imwrite(f'{results_path}/0_gray.png', img_gray) # 確認用
     
-    # 第四引数が cv2.THRESH_TOZERO_INV で直線をひとつ多く検出したことを確認。他サンプルと比較必須。
+    # 二値化処理
     retval, img_bw = cv2.threshold(img_gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
     #retval, img_bw = cv2.threshold(img_gray, 0, 255, cv2.THRESH_TOZERO + cv2.THRESH_OTSU)
     cv2.imwrite(f'{results_path}/1_thresh.png', img_bw) # 確認用
     
-    # 膨張処理
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
-    #img_bw = cv2.erode(img_bw, kernel, iterations=1)
-    cv2.imwrite(f'{results_path}/2_dilate.png', img_bw) # 確認用
-    
     # Canny 法によるエッジ検出（下線部検出のみ）
-    results_path = './results/underlines'
     med_val = np.median(img_bw)
     sigma = 0.33
     min_val = int(max(0, (1.0 - sigma) * med_val))
@@ -271,7 +263,7 @@ def find_underlines(img_edges: np.ndarray, img_underline: np.ndarray, rect_sorte
 
         # 重複する水平線のインデックスを保存するリスト
         overlap_index = []
-        rect_error = 20 # 検知した直線を矩形の一部と捉える誤差
+        rect_error = 10 # 検知した直線を矩形の一部と捉える誤差
         
         for i in range(rect_sorted_memory.shape[0]):
             for j, line in enumerate(line_nparray):
@@ -351,7 +343,7 @@ def main():
     image_original, image_rects, image_underline = load_area_image(input_path)
 
     # 画像処理と領域取得
-    image_bw, image_edges, retval = process_image_area(image_original)
+    image_bw, image_edges, retval = process_image_rect(image_original)
     image_edges, retval = process_image_underline(image_original)
     rect_coords = find_rectangles(image_bw, image_rects, file_name)
     underline_coords = find_underlines(image_edges, image_underline, rect_coords, retval, file_name)

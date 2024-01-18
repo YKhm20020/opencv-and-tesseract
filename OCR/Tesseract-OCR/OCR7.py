@@ -10,7 +10,6 @@ from PIL import Image
 from fugashi import Tagger
 from prepare import create_OCR_directories, load_OCR_image
 from export_data import export_OCR_data
-from functools import reduce
 
 
 def process_image_OCR(input_img: np.ndarray) -> np.ndarray:
@@ -150,24 +149,8 @@ def find_text_and_bounding_box(img_bw: np.ndarray, img_OCR: np.ndarray, file_nam
     text_result = [splitted_txt[i] for i in range(len(splitted_txt)) if i not in delete_index]
     bounding_box_result = [res[i].position for i in range(len(res)) if i not in delete_index]
     
-    # 上下誤差10ピクセルを基準にグループ化
-    group_margin = 10
-    grouped_indices = {}
-    for i in range(len(bounding_box_result)):
-        group = [] 
-        for j in range(i+1, len(bounding_box_result)):
-            if abs(bounding_box_result[i][0][1] - bounding_box_result[j][0][1]) <= group_margin:
-                group.append(j)
-        grouped_indices[i] = group
-
-    # ソートされたインデックス
-    sorted_indices = []
-    processed_indices = set()
-    for key, group in grouped_indices.items():
-        if key not in processed_indices:
-            indices = sorted([key] + group, key=lambda x: bounding_box_result[x][0][0])
-            sorted_indices.extend(indices)
-            processed_indices.update(indices)
+    # 抽出文字とバウンディングボックスの関係性を維持してソート
+    sorted_indices, sorted_values = zip(*sorted(enumerate(bounding_box_result), key=lambda x: (x[1][0][1] // 10, x[1][0][0], x[1][0][0])))
     
     # それぞれをソート後の結果に更新
     text_result = [text_result[i] for i in sorted_indices]
@@ -195,6 +178,7 @@ def main():
     create_OCR_directories()
 
     try:
+        #input_path = './sample/sample6.png'
         input_path = './sample/sample.png'
 
         #input_path =  './sample/P/3．入出退健康管理簿.pdf'
