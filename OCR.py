@@ -107,10 +107,11 @@ def find_text_and_bounding_box(img_bw: np.ndarray, img_OCR: np.ndarray, file_nam
 
     # 除外対象外と判断するホワイトリスト
     text_white_list = ['〒'] 
+    #pos_white_list = ['名詞,数詞,*,*']
 
     # 除外対象と判断するブラックリスト
     text_black_list = ['！'] 
-    pos_black_list = ['補助記号,一般,*,*', '感動詞,フィラー,*,*']
+    pos_black_list = ['補助記号,一般,*,*', '感動詞,フィラー,*,*', '感動詞,一般,*,*']
 
     for i, line in enumerate(splitted_txt):
         text.append(line)
@@ -121,7 +122,7 @@ def find_text_and_bounding_box(img_bw: np.ndarray, img_OCR: np.ndarray, file_nam
         # 形態素解析によって誤検知を排除
         parts, count_symbol = 0, 0 # 形態素数と誤検知と認識した数
         for word in tagger(text[i]): 
-            if word.feature.lemma in text_black_list or word.pos in pos_black_list:
+            if word.feature.lemma in text_black_list or word.feature.lemma is None or word.pos in pos_black_list:
                 count_symbol += 1
             if word.feature.lemma in text_white_list:
                 count_symbol -= 1
@@ -184,7 +185,7 @@ def main():
     create_OCR_directories()
 
     try:
-        input_path = './sample/sample.png'
+        input_path = './sample/seikyuu.jpg'
 
         #input_path =  './sample/P/3．入出退健康管理簿.pdf'
         #input_path =  './sample/P/13-3-18 入出退健康管理簿（確認印欄あり）.pdf'
