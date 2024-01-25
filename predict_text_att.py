@@ -1,6 +1,7 @@
 import os
 import sys
 from typing import List
+import cv2
 import torch
 from transformers import AutoTokenizer
 from auto_gptq import AutoGPTQForCausalLM
@@ -33,7 +34,7 @@ def predict_text_attribute(tokenizer, model, txt: str) -> str:
     
     # 属性が明らかな場合は、推測前に抽出文字をそのまま属性として返す。
     date_candidate = ['年', '月', '日', '年月日', '生年月日', '期間', '期限']
-    number_candidate = ['個数', '金額', '単価']
+    number_candidate = ['個数', '金額', '単価', 'TEL', 'FAX']
     string_candidate = ['住所', '氏名']
     
     if txt == '日付' or txt in date_candidate:
@@ -44,7 +45,14 @@ def predict_text_attribute(tokenizer, model, txt: str) -> str:
         return 'string'
     
     # プロンプトの記述
-    instruction = "書類の項目として、記入欄がどのデータ型にあたるかを選択してください。氏名は文字列、時間は日付、個数は数値のように、短く答えてください。"
+    instruction = """
+    # 命令書:
+    以下の制約条件にあてはまるものを出力してください。
+    
+    # 制約条件
+    ・記入欄に記入する内容が、日付、文字列、数値の中から、どのデータ型が最も適切であるかを選択してください。
+    ・出力は短く、あてはまるデータ型のみとします。
+    """
     input = f"「{txt}」という欄がどのデータ型に該当するかを、日付、文字列、数値の中から最も適切なものを選んでください。不明の場合は、不明としてください。"
     
     context = [
@@ -133,7 +141,8 @@ def main():
     
     try:
         #input_path = './sample/sample4.jpg'
-        input_path = './sample/sample.jpg'
+        #input_path = './sample/sample.jpg'
+        input_path = './sample/seikyuu.jpg'
         
         #input_path =  './sample/P/3．入出退健康管理簿.pdf'
         #input_path =  './sample/P/13-3-18 入出退健康管理簿（確認印欄あり）.pdf'
@@ -147,7 +156,7 @@ def main():
         print(f"Error: {e}")
         sys.exit()
 
-    filename = os.path.splitext(os.path.basename(input_path))[0]
+    file_name = os.path.splitext(os.path.basename(input_path))[0]
     
     tokenizer = AutoTokenizer.from_pretrained("rinna/youri-7b-chat-gptq")
     model = AutoGPTQForCausalLM.from_quantized("rinna/youri-7b-chat-gptq", use_safetensors=True)
@@ -162,15 +171,26 @@ def main():
     image_bw = process_image_OCR(image_original)
     
     # テキスト抽出とバウンディングボックス検出
-    texts, bounding_boxes = find_text_and_bounding_box(image_bw, image_OCR, filename)
+    text, bounding_box = find_text_and_bounding_box(image_bw, image_OCR, file_name)
     
     # 動作結果をファイルにエクスポート
-    export_OCR_data(texts, bounding_boxes)
+    export_OCR_data(text, bounding_box, file_name)
     
     # 文字属性の推測
     print('\nstarting attributes prediction')
     
-    text_attributes = link_attribute_to_text(tokenizer, model, texts)
+    text_attributes = link_attribute_to_text(tokenizer, model, text)
+    
+    # 画像への描画
+    for i in range(len(text)):
+        print(f'string[{i}] {bounding_box[i]} : {text[i]}') # 座標と文字列を出力
+        cv2.rectangle(image_OCR, bounding_box[i][0], bounding_box[i][1], (0, 0, 255), 1) # 検出した箇所を赤枠で囲む
+        cv2.putText(image_OCR, f'{str(i)}: {text_attributes[i]}', bounding_box[i][0], cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2) # 番号をふる
+    
+    # 画像の保存
+    results_path = './results/OCR' 
+    cv2.imwrite(f'{results_path}/OCR_{file_name}.png', image_OCR)
+    cv2.imwrite(f'img_OCR_att.png', image_OCR) # 確認用
     
 
 

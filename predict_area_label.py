@@ -2,6 +2,7 @@ import os
 import sys
 from typing import List, Tuple
 import numpy as np
+import cv2
 from transformers import AutoTokenizer
 from auto_gptq import AutoGPTQForCausalLM
 from prepare import create_label_directories
@@ -38,7 +39,7 @@ def area_detection(input_img: np.ndarray, filename: str) -> Tuple[np.ndarray, Li
     rect_coords = find_rectangles(img_area_bw, img_rects, filename)
     underline_coords = find_underlines(img_area_bw_inv, img_underline, rect_coords, retval, filename)
     
-    return rect_coords, underline_coords
+    return img_rects, img_underline, rect_coords, underline_coords
 
 
 def text_extraction(input_img: np.ndarray, filename: str) -> Tuple[List[str], List[np.ndarray]]:
@@ -132,7 +133,8 @@ def main():
     create_label_directories()
     
     try:
-        input_path = './sample/sample4.jpg'
+        input_path = './sample/seikyuu.jpg'
+        #input_path = './sample/sample4.jpg'
         #input_path = './sample/sample.png'
         
         #input_path =  './sample/P/3．入出退健康管理簿.pdf'
@@ -149,7 +151,7 @@ def main():
 
     file_name = os.path.splitext(os.path.basename(input_path))[0]
     
-    rect_coordinates, underline_coordinates = area_detection(input_path, file_name)
+    image_rects, image_underlines, rect_coordinates, underline_coordinates = area_detection(input_path, file_name)
     texts, bounding_box_coordinates = text_extraction(input_path, file_name)
     
     print('\nstart label prediction')
@@ -161,7 +163,15 @@ def main():
         print('No rect labels because there are no rects')
     else:
         for i, label in enumerate(rect_area_labels):
+            color = np.random.randint(0, 255, 3).tolist()
+            cv2.drawContours(image_rects, rect_coordinates, i, color, 2)
+            cv2.putText(image_rects, f'{str(i)}: {rect_area_labels[i]}', tuple(rect_coordinates[i][0]), cv2.FONT_HERSHEY_SIMPLEX, 0.8, color, 2)
+            
             print(f'rect_label[{i}]: {label}')
+    
+        results_path = './results/rects'
+        cv2.imwrite(f'{results_path}/rects_{file_name}.png', image_rects) # 結果を描画した画像の保存
+        cv2.imwrite('img_rect_labels.png', image_rects) # 一時確認用
         
     print()
     
@@ -169,7 +179,18 @@ def main():
         print('No underline labels because there are no underlines')
     else:
         for i, label in enumerate(underline_area_labels):
+            x1, y1, x2, y2 = underline_coordinates[i]
+            cv2.line(image_underlines, (x1, y1), (x2, y2), (0, 255, 0), 2)
+            cv2.putText(image_underlines, f'{str(i)}: {underline_area_labels[i]}', (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
+
             print(f'underline_label[{i}]: {label}')
+            
+        results_path = './results/underlines'
+        cv2.imwrite(f'{results_path}/underline_{file_name}.png', image_underlines)
+        cv2.imwrite('img_underline_labels.png', image_underlines) # 確認用
+
+            
+
     
 
 
