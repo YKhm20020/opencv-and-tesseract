@@ -71,7 +71,6 @@ def find_text_and_bounding_box(img_bw: np.ndarray, img_OCR: np.ndarray, file_nam
 
     TESSDATA_PATH = os.path.join(TESSERACT_PATH, 'tessdata')
     os.environ['TESSDATA_PREFIX'] = TESSDATA_PATH
-    results_path = './results/OCR' 
     
     # 利用可能なOCRツールを取得
     tools = pyocr.get_available_tools()
@@ -172,16 +171,6 @@ def find_text_and_bounding_box(img_bw: np.ndarray, img_OCR: np.ndarray, file_nam
     # それぞれをソート後の結果に更新
     text_result = [text_result[i] for i in sorted_indices]
     bounding_box_result = [bounding_box_result[i] for i in sorted_indices]
-
-    # ソート後の結果を表示
-    for i, line in enumerate(text_result):
-        print(f'string[{i}] {bounding_box_result[i]} : {text_result[i]}') # 座標と文字列を出力
-        cv2.rectangle(img_OCR, bounding_box_result[i][0], bounding_box_result[i][1], (0, 0, 255), 1) # 検出した箇所を赤枠で囲む
-        cv2.putText(img_OCR, str(i), bounding_box_result[i][0], cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2) # 番号をふる
-
-    # 検出結果の画像を表示
-    cv2.imwrite(f'{results_path}/OCR_{file_name}.png', img_OCR)
-    cv2.imwrite(f'img_OCR.png', img_OCR) # 確認用
     
     # 動作結果をファイルにエクスポート
     export_OCR_data(text_result, bounding_box_result, file_name)
@@ -230,6 +219,17 @@ def main():
 
     # テキスト抽出とバウンディングボックス検出
     text, bounding_box = find_text_and_bounding_box(image_bw, image_OCR, file_name)
+    
+    # 画像への描画
+    for i in range(len(text)):
+        print(f'string[{i}] {bounding_box[i]} : {text[i]}') # 座標と文字列を出力
+        cv2.rectangle(image_OCR, bounding_box[i][0], bounding_box[i][1], (0, 0, 255), 1) # 検出した箇所を赤枠で囲む
+        cv2.putText(image_OCR, str(i), bounding_box[i][0], cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2) # 番号をふる
+
+    # 画像の保存
+    results_path = './results/OCR' 
+    cv2.imwrite(f'{results_path}/OCR_{file_name}.png', image_OCR)
+    cv2.imwrite(f'img_OCR.png', image_OCR) # 確認用
     
     
     

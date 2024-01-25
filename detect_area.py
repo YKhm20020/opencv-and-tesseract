@@ -137,56 +137,57 @@ def find_rectangles(img_bw: np.ndarray, img_rects: np.ndarray, file_name: str) -
     
     contours, hierarchy = cv2.findContours(img_bw, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
-    # 面積でフィルタリング
-    rects = []
-    for cnt, hrchy in zip(contours, hierarchy[0]): 
-        if cv2.contourArea(cnt) < 3000:
-            continue  # 面積が小さいものを除外
-        if hrchy[3] == -1:
-            continue  # ルートノードを除外
-    
-        # 輪郭を囲む長方形を計算
-        rect = cv2.minAreaRect(cnt)
-        (x, y), (w, h), angle = rect
+    if len(contours) == 0:
+        return None
+    else:
+        # 面積でフィルタリング
+        rects = []
+        for cnt, hrchy in zip(contours, hierarchy[0]): 
+            if cv2.contourArea(cnt) < 3000:
+                continue  # 面積が小さいものを除外
+            if hrchy[3] == -1:
+                continue  # ルートノードを除外
         
-        # 縦横の線のうち、どちらがの線の長さが極端に短い場合は除外
-        if min(w, h) < 10:
-            continue
-        
-        rect_points = cv2.boxPoints(rect).astype(int)
-        rects.append(rect_points)
+            # 輪郭を囲む長方形を計算
+            rect = cv2.minAreaRect(cnt)
+            (x, y), (w, h), angle = rect
+            
+            # 縦横の線のうち、どちらがの線の長さが極端に短い場合は除外
+            if min(w, h) < 10:
+                continue
+            
+            rect_points = cv2.boxPoints(rect).astype(int)
+            rects.append(rect_points)
 
-    # x-y 順でソート
-    rects = sorted(rects, key=lambda x: (x[0][1], x[0][0]))
+        # x-y 順でソート
+        rects = sorted(rects, key=lambda x: (x[0][1], x[0][0]))
 
-    rect_sorted_memory = []
+        rect_sorted_memory = []
 
-    # 矩形領域を描画する
-    for i, rect in enumerate(rects):
-        # 頂点を左上、左下、右下、右上の順序に並び替える
-        rect_sorted = np.array(sort_points(rect))
+        # 矩形領域を描画する
+        for i, rect in enumerate(rects):
+            # 頂点を左上、左下、右下、右上の順序に並び替える
+            rect_sorted = np.array(sort_points(rect))
+            
+            rect_sorted_memory.append(rect_sorted)
+            
+            # color = np.random.randint(0, 255, 3).tolist()
+            # cv2.drawContours(img_rects, rects, i, color, 2)
+            # cv2.putText(img_rects, str(i), tuple(rect[0]), cv2.FONT_HERSHEY_SIMPLEX, 0.8, color, 2)
+            
+            # print(f'rect({i}):\n{rect_sorted}')
         
-        rect_sorted_memory.append(rect_sorted)
-        
-        color = np.random.randint(0, 255, 3).tolist()
-        cv2.drawContours(img_rects, rects, i, color, 2)
-        cv2.putText(img_rects, str(i), tuple(rect[0]), cv2.FONT_HERSHEY_SIMPLEX, 0.8, color, 2)
-        
-        print(f'rect({i}):\n{rect_sorted}')
-        
-    print()
-    
-    results_path = './results/rects'
-    cv2.imwrite(f'{results_path}/rects_{file_name}.png', img_rects) # 結果を描画した画像の保存
-    cv2.imwrite('img.png', img_rects) # 一時確認用
+        # results_path = './results/rects'
+        # cv2.imwrite(f'{results_path}/rects_{file_name}.png', img_rects) # 結果を描画した画像の保存
+        # cv2.imwrite('img.png', img_rects) # 一時確認用
 
-    rect_sorted_memory = np.array(rect_sorted_memory)
-    rect_sorted_list = rect_sorted_memory.tolist()
-    
-    # 矩形領域の座標をファイルにエクスポート
-    export_rects_data(rect_sorted_list, file_name)
-    
-    return rect_sorted_memory
+        rect_sorted_memory = np.array(rect_sorted_memory)
+        rect_sorted_list = rect_sorted_memory.tolist()
+        
+        # 矩形領域の座標をファイルにエクスポート
+        export_rects_data(rect_sorted_list, file_name)
+        
+        return rect_sorted_memory
 
 
 def find_underlines(img_bw_inv: np.ndarray, img_underline: np.ndarray, rect_sorted_memory: np.ndarray, retval: float, file_name: str) -> List[np.ndarray]:
@@ -208,7 +209,7 @@ def find_underlines(img_bw_inv: np.ndarray, img_underline: np.ndarray, rect_sort
     height, width = img_bw_inv.shape
     min_length = width * 0.1
     
-    length_threshold = 50 # 30 ～ 100
+    length_threshold = 60 # 30 ～ 100
     distance_threshold = 1.41421356
     
     med_val = retval
@@ -312,21 +313,21 @@ def find_underlines(img_bw_inv: np.ndarray, img_underline: np.ndarray, rect_sort
         # 重複する水平線のインデックスを参照し、ndarray 配列から削除               
         unique_horizontal_nparray = np.delete(line_nparray, overlap_index, 0)
 
-        # 矩形領域と重複しない水平線の座標を表示する
-        if unique_horizontal_nparray.shape[0] == 0:
-            print('Underlines are not detected')
-            return None
-        else:
-            for i, line in enumerate(unique_horizontal_nparray):
-                x1, y1, x2, y2 = unique_horizontal_nparray[i]
-                cv2.line(img_underline, (x1, y1), (x2, y2), (0, 255, 0), 2)
-                cv2.putText(img_underline, str(i), (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
+        # # 矩形領域と重複しない水平線の座標を表示する
+        # if unique_horizontal_nparray.shape[0] == 0:
+        #     print('Underlines are not detected')
+        #     return None
+        # else:
+        #     for i in range(len(unique_horizontal_nparray)):
+        #         x1, y1, x2, y2 = unique_horizontal_nparray[i]
+        #         cv2.line(img_underline, (x1, y1), (x2, y2), (0, 255, 0), 2)
+        #         cv2.putText(img_underline, str(i), (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
 
-                print(f'line({i}):\n{unique_horizontal_nparray[i]}')
+        #         print(f'line({i}):\n{unique_horizontal_nparray[i]}')
 
-        results_path = './results/underlines'
-        cv2.imwrite(f'{results_path}/underline_{file_name}.png', img_underline)
-        cv2.imwrite('img_underline.png', img_underline) # 確認用
+        # results_path = './results/underlines'
+        # cv2.imwrite(f'{results_path}/underline_{file_name}.png', img_underline)
+        # cv2.imwrite('img_underline.png', img_underline) # 確認用
         
         unique_horizontal_list = unique_horizontal_nparray.tolist()
         
@@ -346,7 +347,9 @@ def main():
         #input_path =  './sample/P/13-3-18 入出退健康管理簿（確認印欄あり）.pdf'
         #input_path =  './sample/P/20230826_富士瓦斯資料_設備保安点検01.pdf'
 
-        input_path = './sample/sample2.jpg'
+        #input_path = './sample/sample2.jpg'
+        input_path = './sample/seikyuu.jpg'
+        #input_path = './sample/sample.png'
         #input_path = './sample/P/（158-000306）自動車保険契約内容変更依頼書/作成/【ベース】AA300319_1-1.jpg'
         #input_path = './sample/P/（158-000306）自動車保険契約内容変更依頼書/作成/変更_AA300319.pdf'
         #input_path = './sample/P/02稟議書_/A281新卒者採用稟議書.png'
@@ -372,8 +375,43 @@ def main():
     # 画像処理と領域取得
     image_bw, retval = process_image_rect(image_original)
     image_bw_inv, retval = process_image_underline(image_original)
+    
     rect_coords = find_rectangles(image_bw, image_rects, file_name)
+    
+    if rect_coords is None:
+        print("No contours found")
+    else:
+        # 矩形領域を描画する
+        for i, rect in enumerate(rect_coords):
+            # 頂点を左上、左下、右下、右上の順序に並び替える
+            rect_sorted = np.array(sort_points(rect))        
+            color = np.random.randint(0, 255, 3).tolist()
+            cv2.drawContours(image_rects, rect_coords, i, color, 2)
+            cv2.putText(image_rects, str(i), tuple(rect[0]), cv2.FONT_HERSHEY_SIMPLEX, 0.8, color, 2)
+            
+            print(f'rect({i}):\n{rect_sorted}')
+        
+        print()
+    
+        results_path = './results/rects'
+        cv2.imwrite(f'{results_path}/rects_{file_name}.png', image_rects) # 結果を描画した画像の保存
+        cv2.imwrite('img.png', image_rects) # 一時確認用
+    
     underline_coords = find_underlines(image_bw_inv, image_underline, rect_coords, retval, file_name)
+    
+    if underline_coords is None:
+        print('Underlines are not detected')
+    else:
+        for i in range(len(underline_coords)):
+            x1, y1, x2, y2 = underline_coords[i]
+            cv2.line(image_underline, (x1, y1), (x2, y2), (0, 255, 0), 2)
+            cv2.putText(image_underline, str(i), (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
+
+            print(f'line({i}):\n{underline_coords[i]}')
+            
+        results_path = './results/underlines'
+        cv2.imwrite(f'{results_path}/underline_{file_name}.png', image_underline)
+        cv2.imwrite('img_underline.png', image_underline) # 確認用
 
 if __name__ == "__main__":
     main()
