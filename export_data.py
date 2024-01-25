@@ -145,59 +145,106 @@ def export_label_data(r_labels: str, rects: np.ndarray, u_labels: str, underline
     
     # rects も underlines も検出した場合
     if rects is not None and underlines is not None:
-        # rects を辞書形式に整形
-        rect_label_data = []
-        for i, (r_label, r) in enumerate(zip(r_labels, rects)):
-            rect_dict = {f"rect{i}": {"rect_label": r_label}}
-            for j, point_name in enumerate(["top_left", "bottom_left", "bottom_right", "top_right"]):
-                point_dict = {"x": int(r[j, 0]), "y": int(r[j, 1])}
-                rect_dict[f"rect{i}"][f"{point_name}"] = point_dict
-            rect_label_data.append(rect_dict)
+        rect_data = {}
+        for idx, rect_coords in enumerate(rects):
+            rect_data[f"{idx}"] = {
+                "label": r_labels[idx],
+                "top_left": {"x": int(rect_coords[0][0]), "y": int(rect_coords[0][1])},
+                "buttom_left": {"x": int(rect_coords[1][0]), "y": int(rect_coords[1][1])},
+                "buttom_right": {"x": int(rect_coords[2][0]), "y": int(rect_coords[2][1])},
+                "top_right": {"x": int(rect_coords[3][0]), "y": int(rect_coords[3][1])}
+            }
         
-        # underlines を辞書形式に整形
-        underline_label_data = []
-        for i, (u_label, u) in enumerate(zip(u_labels, underlines)):
-            underline_dict = {f"underline{i}": {"underline_label": u_label}}
-            left_point_dict = {"x": int(u[0][0]), "y": int(u[0][1])}
-            right_point_dict = {"x": int(u[1][0]), "y": int(u[1][1])}
-            underline_dict[f"underline{i}"]["left"] = left_point_dict
-            underline_dict[f"underline{i}"]["right"] = right_point_dict
-            underline_label_data.append(underline_dict)
+        underline_data = {}
+        for idx, underline_coords in enumerate(underlines):
+            underline_data[f"{idx}"] = {
+                "label": u_labels[idx],
+                "left": {"x": int(underline_coords[0]), "y": int(underline_coords[1])},
+                "right": {"x": int(underline_coords[2]), "y": int(underline_coords[3])}
+            }
 
-        
         # JSON ファイルにエクスポート
         with open(f'{data_path}/json/labels_data_{file_name}.json', 'w', encoding='utf_8_sig') as f:
-            json.dump({"rects_data": rect_label_data, "underlines_data": underline_label_data}, f, indent=4, ensure_ascii=False)
+            json.dump({"rects_data": rect_data, "underlines_data": underline_data}, f, indent=4, ensure_ascii=False)
+            
+        # CSV ファイルにエクスポート
+        with open(f'{data_path}/csv/rect_data_{file_name}.csv', 'w', encoding='utf_8_sig') as f:
+            writer = csv.writer(f)
+            # ヘッダーを書き込む
+            writer.writerow(["Rectangle", "Label", "Top_Left_x", "Top_Left_y", "Bottom_Left_x", "Bottom_Left_y", "Bottom_Right_x", "Bottom_Right_y", "Top_Right_x", "Top_Right_y"])
+            
+            # データを書き込む
+            for idx, rect_coords in enumerate(rects):
+                top_left, bottom_left, bottom_right, top_right = rect_coords
+                writer.writerow([idx, r_labels[idx], top_left[0], top_left[1], bottom_left[0], bottom_left[1], bottom_right[0], bottom_right[1], top_right[0], top_right[1]])
+            
+        with open(f'{data_path}/csv/underlines_data_{file_name}.csv', 'w', encoding='utf_8_sig', newline='') as f:
+            writer = csv.writer(f)
+            # ヘッダーを書き込む
+            writer.writerow(["Underline", "Label", "Left_x", "Left_y", "Right_x", "Right_y"])
+            
+            # データを書き込む
+            for idx, underline_coords in enumerate(underlines):
+                left_x, left_y, right_x, right_y = underline_coords
+                writer.writerow([idx, u_labels[idx], left_x, left_y, right_x, right_y])
     
     
     # rects のみを検出した場合
     elif rects is not None and underlines is None:
         print('underline labels are not exported')
         
-        # rects を辞書形式に整形
-        rect_label_data = []
-        for i, (r_label, r) in enumerate(zip(r_labels, rects)):
-            rect_dict = {f"rect{i}": {"rect_label": r_label}}
-            for j, point_name in enumerate(["top_left", "bottom_left", "bottom_right", "top_right"]):
-                point_dict = {"x": int(r[j, 0]), "y": int(r[j, 1])}
-                rect_dict[f"rect{i}"][f"{point_name}"] = point_dict
-            rect_label_data.append(rect_dict)
-        
         # JSON ファイルにエクスポート
+        rect_data = {}
+        for idx, rect_coords in enumerate(rects):
+            rect_data[f"{idx}"] = {
+                "label": r_labels[idx],
+                "top_left": {"x": int(rect_coords[0][0]), "y": int(rect_coords[0][1])},
+                "buttom_left": {"x": int(rect_coords[1][0]), "y": int(rect_coords[1][1])},
+                "buttom_right": {"x": int(rect_coords[2][0]), "y": int(rect_coords[2][1])},
+                "top_right": {"x": int(rect_coords[3][0]), "y": int(rect_coords[3][1])}
+            } 
+        
         with open(f'{data_path}/json/labels_data_{file_name}.json', 'w', encoding='utf_8_sig') as f:
-            json.dump({"rects_data": rect_label_data}, f, indent=4, ensure_ascii=False)
+            json.dump({"rects_data": rect_data}, f, indent=4, ensure_ascii=False)
+            
+        # CSV ファイルにエクスポート
+        with open(f'{data_path}/csv/rect_data_{file_name}.csv', 'w', encoding='utf_8_sig') as f:
+            writer = csv.writer(f)
+            # ヘッダーを書き込む
+            writer.writerow(["Rectangle", "Label", "Top_Left_x", "Top_Left_y", "Bottom_Left_x", "Bottom_Left_y", "Bottom_Right_x", "Bottom_Right_y", "Top_Right_x", "Top_Right_y"])
+            
+            # データを書き込む
+            for idx, rect_coords in enumerate(rects):
+                top_left, bottom_left, bottom_right, top_right = rect_coords
+                writer.writerow([idx, r_labels[idx], top_left[0], top_left[1], bottom_left[0], bottom_left[1], bottom_right[0], bottom_right[1], top_right[0], top_right[1]])    
     
     
     # underlines のみを検出した場合
     elif rects is None and underlines is not None:
         print("rect labels are not exported")
         
-        # 辞書形式に整形
-        underline_label_data = [{"underline_label": u_label, "underline": u} for u_label, u in zip(u_labels, underlines)]
-        
         # JSON ファイルにエクスポート
+        underline_data = {}
+        for idx, underline_coords in enumerate(underlines):
+            underline_data[f"{idx}"] = {
+                "label": u_labels[idx],
+                "left": {"x": int(underline_coords[0]), "y": int(underline_coords[1])},
+                "right": {"x": int(underline_coords[2]), "y": int(underline_coords[3])}
+            }
+        
         with open(f'{data_path}/json/labels_data_{file_name}.json', 'w', encoding='utf_8_sig') as f:
-            json.dump({"underlines_data": underline_label_data}, f, indent=4, ensure_ascii=False)
+            json.dump({"underlines_data": underline_data}, f, indent=4, ensure_ascii=False)
+        
+        # CSV ファイルにエクスポート
+        with open(f'{data_path}/csv/underlines_data_{file_name}.csv', 'w', encoding='utf_8_sig', newline='') as f:
+            writer = csv.writer(f)
+            # ヘッダーを書き込む
+            writer.writerow(["Underline", "Label", "Left_x", "Left_y", "Right_x", "Right_y"])
+            
+            # データを書き込む
+            for idx, underline_coords in enumerate(underlines):
+                left_x, left_y, right_x, right_y = underline_coords
+                writer.writerow([idx, u_labels[idx], left_x, left_y, right_x, right_y])
             
     else:
         # エラー処理: rects および underlines がどちらも None の場合
