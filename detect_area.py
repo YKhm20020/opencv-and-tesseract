@@ -387,6 +387,7 @@ def main():
             rect_sorted = np.array(sort_points(rect))        
             color = np.random.randint(0, 255, 3).tolist()
             cv2.drawContours(image_rects, rect_coords, i, color, 2)
+            #cv2.drawContours(image_rects, rect_coords, i, (255,255,255), 12)
             cv2.putText(image_rects, str(i), tuple(rect[0]), cv2.FONT_HERSHEY_SIMPLEX, 0.8, color, 2)
             
             print(f'rect({i}):\n{rect_sorted}')
@@ -404,7 +405,8 @@ def main():
     else:
         for i in range(len(underline_coords)):
             x1, y1, x2, y2 = underline_coords[i]
-            cv2.line(image_underline, (x1, y1), (x2, y2), (0, 255, 0), 2)
+            cv2.line(image_underline, (x1, y1), (x2, y2), (255, 255, 255), 12)
+            #cv2.line(image_underline, (x1, y1), (x2, y2), (0, 255, 0), 2)
             cv2.putText(image_underline, str(i), (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
 
             print(f'line({i}):\n{underline_coords[i]}')

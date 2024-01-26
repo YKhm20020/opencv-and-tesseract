@@ -42,7 +42,7 @@ def area_detection(input_img: np.ndarray, filename: str) -> Tuple[np.ndarray, Li
     return img_rects, img_underline, rect_coords, underline_coords
 
 
-def text_extraction(input_img: np.ndarray, filename: str) -> Tuple[List[str], List[np.ndarray]]:
+def text_extraction(input_img: np.ndarray, filename: str, rect_coords: np.ndarray, underline_coords) -> Tuple[List[str], List[np.ndarray]]:
     """ 文字抽出機能を動作させる関数
     
     ディレクトリ作成から文字の抽出とバウンディングボックスの座標を検出するまでの処理をまとめた関数
@@ -62,11 +62,29 @@ def text_extraction(input_img: np.ndarray, filename: str) -> Tuple[List[str], Li
     # 入力画像の読み込み
     img_OCR_original, img_OCR = load_OCR_image(input_img)
     
+    # 矩形領域と下線部領域を白に塗りつぶす
+    for i, rect in enumerate(rect_coords):
+        cv2.drawContours(img_OCR_original, rect_coords, i, (255, 255, 255), 12)
+        
+    for i in range(len(underline_coords)):
+        x1, y1, x2, y2 = underline_coords[i]
+        cv2.line(img_OCR_original, (x1, y1), (x2, y2), (255, 255, 255), 12)
+        
+    results_path = './results/labels' 
+    cv2.imwrite(f'{results_path}/1_before_OCR.png', img_OCR_original) # 確認用
+    
     # 画像処理
     img_OCR_bw = process_image_OCR(img_OCR_original)
     
     # テキスト抽出とバウンディングボックス検出
     txts, b_boxes = find_text_and_bounding_box(img_OCR_bw, img_OCR, filename)
+    
+    # 画像への描画
+    for i in range(len(txts)):
+        cv2.rectangle(img_OCR_original, b_boxes[i][0], b_boxes[i][1], (0, 0, 255), 1) # 検出した箇所を赤枠で囲む
+        cv2.putText(img_OCR_original, str(i), b_boxes[i][0], cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2) # 番号をふる
+        
+    cv2.imwrite(f'{results_path}/2_after_OCR.png', img_OCR_original) # 確認用
     
     return txts, b_boxes
 
@@ -152,7 +170,7 @@ def main():
     file_name = os.path.splitext(os.path.basename(input_path))[0]
     
     image_rects, image_underlines, rect_coordinates, underline_coordinates = area_detection(input_path, file_name)
-    texts, bounding_box_coordinates = text_extraction(input_path, file_name)
+    texts, bounding_box_coordinates = text_extraction(input_path, file_name, rect_coordinates, underline_coordinates)
     
     print('\nstart label prediction')
     rect_area_labels, underline_area_labels = label_prediction(rect_coordinates, underline_coordinates, texts, bounding_box_coordinates, file_name)

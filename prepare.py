@@ -36,6 +36,7 @@ def create_label_directories() -> None:
     ラベル付与の実行結果としてエクスポートするディレクトリを作成する
 
     """
+    os.makedirs('./results/labels', exist_ok=True)
     os.makedirs('./data/labels/json', exist_ok=True)
     os.makedirs('./data/labels/csv', exist_ok=True)
 

@@ -9,6 +9,7 @@ import cv2
 from PIL import Image
 from fugashi import Tagger
 from prepare import create_OCR_directories, load_OCR_image
+from detect_area import create_area_directories, load_area_image, process_image_rect, process_image_underline, find_rectangles, find_underlines
 from export_data import export_OCR_data
 from functools import reduce
 
