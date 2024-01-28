@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 from typing import List, Tuple
 import numpy as np
 import pyocr
@@ -151,28 +152,45 @@ def find_text_and_bounding_box(img_bw: np.ndarray, img_OCR: np.ndarray, file_nam
     text_result = [splitted_txt[i] for i in range(len(splitted_txt)) if i not in delete_index]
     bounding_box_result = [res[i].position for i in range(len(res)) if i not in delete_index]
     
-    # 上下誤差10ピクセルを基準にグループ化
-    group_margin = 10
-    grouped_indices = {}
-    for i in range(len(bounding_box_result)):
-        group = [] 
-        for j in range(i+1, len(bounding_box_result)):
-            if abs(bounding_box_result[i][0][1] - bounding_box_result[j][0][1]) <= group_margin:
-                group.append(j)
-        grouped_indices[i] = group
+    # # 上下誤差10ピクセルを基準にグループ化
+    # group_margin = 10
+    # grouped_indices = {}
+    # for i in range(len(bounding_box_result)):
+    #     group = [] 
+    #     for j in range(i+1, len(bounding_box_result)):
+    #         if abs(bounding_box_result[i][0][1] - bounding_box_result[j][0][1]) <= group_margin:
+    #             group.append(j)
+    #     grouped_indices[i] = group
 
-    # ソートされたインデックス
-    sorted_indices = []
-    processed_indices = set()
-    for key, group in grouped_indices.items():
-        if key not in processed_indices:
-            indices = sorted([key] + group, key=lambda x: bounding_box_result[x][0][0])
-            sorted_indices.extend(indices)
-            processed_indices.update(indices)
+    # # ソートされたインデックス
+    # sorted_indices = []
+    # processed_indices = set()
+    # for key, group in grouped_indices.items():
+    #     if key not in processed_indices:
+    #         indices = sorted([key] + group, key=lambda x: bounding_box_result[x][0][0])
+    #         sorted_indices.extend(indices)
+    #         processed_indices.update(indices)
     
-    # それぞれをソート後の結果に更新
-    text_result = [text_result[i] for i in sorted_indices]
-    bounding_box_result = [bounding_box_result[i] for i in sorted_indices]
+    # # それぞれをソート後の結果に更新
+    # text_result = [text_result[i] for i in sorted_indices]
+    # bounding_box_result = [bounding_box_result[i] for i in sorted_indices]
+    
+    # bounding_box_grouped = []
+    # group = []
+    # for i in range(len(bounding_box_deleted)):
+    #     if i < len(bounding_box_deleted)-1 and abs(bounding_box_deleted[i][0][1] - bounding_box_deleted[i+1][0][1]) < 10:
+    #         group.append(bounding_box_deleted[i])
+    #     else:
+    #         group.append(bounding_box_deleted[i])
+    #         bounding_box_grouped.append(group)
+    #         group = []
+    # if group:
+    #     bounding_box_grouped.append(group)
+
+    # for g in bounding_box_grouped:
+    #     g.sort(key=lambda x: x[0][0])
+
+    # bounding_box_deleted = [b for g in bounding_box_grouped for b in g]
     
     # 動作結果をファイルにエクスポート
     export_OCR_data(text_result, bounding_box_result, file_name)
@@ -182,6 +200,9 @@ def find_text_and_bounding_box(img_bw: np.ndarray, img_OCR: np.ndarray, file_nam
 
 
 def main():
+    # 実行時間の計測開始
+    time_start = time.perf_counter()
+    
     # ディレクトリ作成
     create_OCR_directories()
 
@@ -232,6 +253,13 @@ def main():
     results_path = './results/OCR' 
     cv2.imwrite(f'{results_path}/OCR_{file_name}.png', image_OCR)
     cv2.imwrite(f'img_OCR.png', image_OCR) # 確認用
+    
+    # 実行時間の計測終了
+    time_end = time.perf_counter()
+    
+    # 実行時間の計算と表示
+    execution_time = time_end - time_start
+    print(f"\nexecution time: {execution_time}sec")
     
     
     

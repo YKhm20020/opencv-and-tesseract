@@ -145,23 +145,29 @@ def export_label_data(r_labels: str, rects: np.ndarray, u_labels: str, underline
     
     # rects も underlines も検出した場合
     if rects is not None and underlines is not None:
-        rect_data = {}
+        rect_data = []
         for idx, rect_coords in enumerate(rects):
-            rect_data[f"{idx}"] = {
+            rect_json = {
+                "id": idx,
                 "label": r_labels[idx],
-                "top_left": {"x": int(rect_coords[0][0]), "y": int(rect_coords[0][1])},
-                "buttom_left": {"x": int(rect_coords[1][0]), "y": int(rect_coords[1][1])},
-                "buttom_right": {"x": int(rect_coords[2][0]), "y": int(rect_coords[2][1])},
-                "top_right": {"x": int(rect_coords[3][0]), "y": int(rect_coords[3][1])}
+                "coords": {
+                    "top_left": {"x": int(rect_coords[0][0]), "y": int(rect_coords[0][1])},
+                    "buttom_left": {"x": int(rect_coords[1][0]), "y": int(rect_coords[1][1])},
+                    "buttom_right": {"x": int(rect_coords[2][0]), "y": int(rect_coords[2][1])},
+                    "top_right": {"x": int(rect_coords[3][0]), "y": int(rect_coords[3][1])}
+                }
             }
+            rect_data.append(rect_json)
         
-        underline_data = {}
+        underline_data = []
         for idx, underline_coords in enumerate(underlines):
-            underline_data[f"{idx}"] = {
+            underline_json = {
+                "id": idx,
                 "label": u_labels[idx],
                 "left": {"x": int(underline_coords[0]), "y": int(underline_coords[1])},
                 "right": {"x": int(underline_coords[2]), "y": int(underline_coords[3])}
             }
+            underline_data.append(underline_json)
 
         # JSON ファイルにエクスポート
         with open(f'{data_path}/json/labels_data_{file_name}.json', 'w', encoding='utf_8_sig') as f:
@@ -194,15 +200,19 @@ def export_label_data(r_labels: str, rects: np.ndarray, u_labels: str, underline
         print('underline labels are not exported')
         
         # JSON ファイルにエクスポート
-        rect_data = {}
+        rect_data = []
         for idx, rect_coords in enumerate(rects):
-            rect_data[f"{idx}"] = {
+            rect_json = {
+                "id": idx,
                 "label": r_labels[idx],
-                "top_left": {"x": int(rect_coords[0][0]), "y": int(rect_coords[0][1])},
-                "buttom_left": {"x": int(rect_coords[1][0]), "y": int(rect_coords[1][1])},
-                "buttom_right": {"x": int(rect_coords[2][0]), "y": int(rect_coords[2][1])},
-                "top_right": {"x": int(rect_coords[3][0]), "y": int(rect_coords[3][1])}
-            } 
+                "coords": {
+                    "top_left": {"x": int(rect_coords[0][0]), "y": int(rect_coords[0][1])},
+                    "buttom_left": {"x": int(rect_coords[1][0]), "y": int(rect_coords[1][1])},
+                    "buttom_right": {"x": int(rect_coords[2][0]), "y": int(rect_coords[2][1])},
+                    "top_right": {"x": int(rect_coords[3][0]), "y": int(rect_coords[3][1])}
+                }
+            }
+            rect_data.append(rect_json)
         
         with open(f'{data_path}/json/labels_data_{file_name}.json', 'w', encoding='utf_8_sig') as f:
             json.dump({"rects_data": rect_data}, f, indent=4, ensure_ascii=False)
@@ -224,13 +234,15 @@ def export_label_data(r_labels: str, rects: np.ndarray, u_labels: str, underline
         print("rect labels are not exported")
         
         # JSON ファイルにエクスポート
-        underline_data = {}
+        underline_data = []
         for idx, underline_coords in enumerate(underlines):
-            underline_data[f"{idx}"] = {
+            underline_json = {
+                "id": idx,
                 "label": u_labels[idx],
                 "left": {"x": int(underline_coords[0]), "y": int(underline_coords[1])},
                 "right": {"x": int(underline_coords[2]), "y": int(underline_coords[3])}
             }
+            underline_data.append(underline_json)
         
         with open(f'{data_path}/json/labels_data_{file_name}.json', 'w', encoding='utf_8_sig') as f:
             json.dump({"underlines_data": underline_data}, f, indent=4, ensure_ascii=False)

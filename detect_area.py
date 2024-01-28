@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 from typing import List, Tuple
 import cv2
 import numpy as np
@@ -209,7 +210,7 @@ def find_underlines(img_bw_inv: np.ndarray, img_underline: np.ndarray, rect_sort
     height, width = img_bw_inv.shape
     min_length = width * 0.1
     
-    length_threshold = 60 # 30 ～ 100
+    length_threshold = 80 # 30 ～ 100
     distance_threshold = 1.41421356
     
     med_val = retval
@@ -339,6 +340,9 @@ def find_underlines(img_bw_inv: np.ndarray, img_underline: np.ndarray, rect_sort
 
 
 def main():
+    # 実行時間の計測開始
+    time_start = time.perf_counter()
+    
     # ディレクトリ作成
     create_area_directories()
     
@@ -405,8 +409,8 @@ def main():
     else:
         for i in range(len(underline_coords)):
             x1, y1, x2, y2 = underline_coords[i]
-            cv2.line(image_underline, (x1, y1), (x2, y2), (255, 255, 255), 12)
-            #cv2.line(image_underline, (x1, y1), (x2, y2), (0, 255, 0), 2)
+            #cv2.line(image_underline, (x1, y1), (x2, y2), (255, 255, 255), 12)
+            cv2.line(image_underline, (x1, y1), (x2, y2), (0, 255, 0), 2)
             cv2.putText(image_underline, str(i), (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
 
             print(f'line({i}):\n{underline_coords[i]}')
@@ -414,6 +418,13 @@ def main():
         results_path = './results/underlines'
         cv2.imwrite(f'{results_path}/underline_{file_name}.png', image_underline)
         cv2.imwrite('img_underline.png', image_underline) # 確認用
+        
+    # 実行時間の計測終了
+    time_end = time.perf_counter()
+    
+    # 実行時間の計算と表示
+    execution_time = time_end - time_start
+    print(f"\nexecution time: {execution_time}sec")
 
 if __name__ == "__main__":
     main()

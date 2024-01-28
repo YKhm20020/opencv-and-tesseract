@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 from typing import List, Tuple
 import numpy as np
 import cv2
@@ -64,11 +65,11 @@ def text_extraction(input_img: np.ndarray, filename: str, rect_coords: np.ndarra
     
     # 矩形領域と下線部領域を白に塗りつぶす
     for i, rect in enumerate(rect_coords):
-        cv2.drawContours(img_OCR_original, rect_coords, i, (255, 255, 255), 12)
+        cv2.drawContours(img_OCR_original, rect_coords, i, (255, 255, 255), 15)
         
     for i in range(len(underline_coords)):
         x1, y1, x2, y2 = underline_coords[i]
-        cv2.line(img_OCR_original, (x1, y1), (x2, y2), (255, 255, 255), 12)
+        cv2.line(img_OCR_original, (x1, y1), (x2, y2), (255, 255, 255), 15)
         
     results_path = './results/labels' 
     cv2.imwrite(f'{results_path}/1_before_OCR.png', img_OCR_original) # 確認用
@@ -81,6 +82,7 @@ def text_extraction(input_img: np.ndarray, filename: str, rect_coords: np.ndarra
     
     # 画像への描画
     for i in range(len(txts)):
+        print(f'string[{i}] {b_boxes[i]} : {txts[i]}') # 座標と文字列を出力
         cv2.rectangle(img_OCR_original, b_boxes[i][0], b_boxes[i][1], (0, 0, 255), 1) # 検出した箇所を赤枠で囲む
         cv2.putText(img_OCR_original, str(i), b_boxes[i][0], cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2) # 番号をふる
         
@@ -147,11 +149,15 @@ def label_prediction(rects: np.ndarray, underlines: List[np.ndarray], txts: str,
 
     
 def main():
+    # 実行時間の計測開始
+    time_start = time.perf_counter()
+    
     # ディレクトリ作成
     create_label_directories()
     
     try:
-        input_path = './sample/seikyuu.jpg'
+        #input_path = './sample/seikyuu.jpg'
+        input_path = './sample/nouhin.jpg'
         #input_path = './sample/sample4.jpg'
         #input_path = './sample/sample.png'
         
@@ -193,7 +199,7 @@ def main():
         
     print()
     
-    if underline_area_labels is None:
+    if underline_coordinates is None:
         print('No underline labels because there are no underlines')
     else:
         for i, label in enumerate(underline_area_labels):
@@ -207,7 +213,12 @@ def main():
         cv2.imwrite(f'{results_path}/underline_{file_name}.png', image_underlines)
         cv2.imwrite('img_underline_labels.png', image_underlines) # 確認用
 
-            
+    # 実行時間の計測終了
+    time_end = time.perf_counter()
+    
+    # 実行時間の計算と表示
+    execution_time = time_end - time_start
+    print(f"\nexecution time: {execution_time}sec")
 
     
 
