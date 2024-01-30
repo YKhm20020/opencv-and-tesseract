@@ -54,7 +54,7 @@ def predict_text_attribute(tokenizer, model, txt: str) -> str:
     ・出力は短く、あてはまるデータ型のみとする。
     ・例として、年月日などは日付、氏名などは文字列、金額などは数値があてはまる。
     """
-    input = f"「{txt}」という欄がどのデータ型に該当するか。"
+    input = f"「{txt}」という欄は、どのデータ型に該当するか。"
     
     context = [
         {

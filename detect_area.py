@@ -72,8 +72,8 @@ def process_image_underline(input_img: np.ndarray) -> Tuple[np.ndarray, np.ndarr
     cv2.imwrite(f'{results_path}/0_gray.png', img_gray) # 確認用
     
     # 二値化処理
-    retval, img_bw = cv2.threshold(img_gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-    #retval, img_bw = cv2.threshold(img_gray, 0, 255, cv2.THRESH_TOZERO + cv2.THRESH_OTSU)
+    #retval, img_bw = cv2.threshold(img_gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    retval, img_bw = cv2.threshold(img_gray, 0, 255, cv2.THRESH_TOZERO + cv2.THRESH_OTSU)
     cv2.imwrite(f'{results_path}/1_thresh.png', img_bw) # 確認用
     
     img_bw_inv = cv2.bitwise_not(img_bw)
@@ -210,7 +210,7 @@ def find_underlines(img_bw_inv: np.ndarray, img_underline: np.ndarray, rect_sort
     height, width = img_bw_inv.shape
     min_length = width * 0.1
     
-    length_threshold = 80 # 30 ～ 100
+    length_threshold = 150 # px
     distance_threshold = 1.41421356
     
     med_val = retval
@@ -220,14 +220,14 @@ def find_underlines(img_bw_inv: np.ndarray, img_underline: np.ndarray, rect_sort
 
     canny_th1 = min_val
     canny_th2 = max_val
-    canny_aperture_size = 3
+    canny_aperture_size = 5
     do_merge = True
     
     # print(med_val, min_val, max_val, canny_th1, canny_th2)
 
     # ハフ変換による直線検出
     lines = []
-    # lines = cv2.HoughLinesP(img_edges, rho=1, theta=np.pi/360, threshold=int(retval), minLineLength=min_length, maxLineGap=1)
+    # lines = cv2.HoughLinesP(img_bw_inv, rho=1, theta=np.pi/360, threshold=int(retval), minLineLength=min_length, maxLineGap=1)
     fld = cv2.ximgproc.createFastLineDetector(
         length_threshold,
         distance_threshold,
@@ -239,7 +239,7 @@ def find_underlines(img_bw_inv: np.ndarray, img_underline: np.ndarray, rect_sort
     lines = fld.detect(img_bw_inv)
 
     line_list = []
-    same_line_error = 10 # 上下に生成される直線を同一のものと捉える誤差
+    same_line_error = 20 # 上下に生成される直線を同一のものと捉える誤差
 
     if lines is None:
         print('Straight lines are not detected')
@@ -257,7 +257,7 @@ def find_underlines(img_bw_inv: np.ndarray, img_underline: np.ndarray, rect_sort
                 # right_x, right_y = right_y, right_x
 
             # 傾き3px以内で検出対象に
-            if abs(left_y - right_y) < 3:
+            if abs(left_y - right_y) < 10:
                 line_list.append((left_x, left_y, right_x, right_y))
                 
         line_list = sorted(line_list, key=lambda x: x[0])
@@ -278,6 +278,9 @@ def find_underlines(img_bw_inv: np.ndarray, img_underline: np.ndarray, rect_sort
                 if abs(left_y1 - left_y2) <= same_line_error and abs(left_x1 - left_x2) <= same_line_error:
                     tmp_list.append((left_x2, left_y2, right_x2, right_y2))
                     
+                if abs(left_y1 - left_y2) <= same_line_error and (left_x1 < left_x2 and left_x2 < right_x1):
+                    tmp_list.append((left_x2, left_y2, right_x2, right_y2))
+                    
             # 一時保存リストから各座標ごとに平均値を計算する
             mean_left_x, mean_left_y, mean_right_x, mean_right_y = [np.mean([x[i] for x in tmp_list]) for i in range(4)]
             new_line = (int(mean_left_x), int(mean_left_y), int(mean_right_x), int(mean_right_y))
@@ -288,6 +291,7 @@ def find_underlines(img_bw_inv: np.ndarray, img_underline: np.ndarray, rect_sort
                 if line in line_list_copy:
                     line_list_copy.remove(line)
 
+        line_mean_list = sorted(line_mean_list, key=lambda x: (x[1], x[0]))
         line_nparray = np.array(line_mean_list)
 
         # 重複する水平線のインデックスを保存するリスト
@@ -352,7 +356,8 @@ def main():
         #input_path =  './sample/P/20230826_富士瓦斯資料_設備保安点検01.pdf'
 
         #input_path = './sample/sample2.jpg'
-        input_path = './sample/seikyuu.jpg'
+        #input_path = './sample/seikyuu.jpg'
+        input_path = './sample/seikyuu_camera.jpg'
         #input_path = './sample/sample.png'
         #input_path = './sample/P/（158-000306）自動車保険契約内容変更依頼書/作成/【ベース】AA300319_1-1.jpg'
         #input_path = './sample/P/（158-000306）自動車保険契約内容変更依頼書/作成/変更_AA300319.pdf'

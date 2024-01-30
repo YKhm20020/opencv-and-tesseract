@@ -63,13 +63,30 @@ def text_extraction(input_img: np.ndarray, filename: str, rect_coords: np.ndarra
     # 入力画像の読み込み
     img_OCR_original, img_OCR = load_OCR_image(input_img)
     
+    # 各ピクセルの RGB 値を取得
+    r, g, b = img_OCR_original[:,:,0], img_OCR_original[:,:,1], img_OCR_original[:,:,2]
+
+    # RGB値のヒストグラムを計算
+    r_hist, r_bins = np.histogram(r, 256)
+    g_hist, g_bins = np.histogram(g, 256) 
+    b_hist, b_bins = np.histogram(b, 256)
+
+    # ヒストグラムで最も多い値を背景色として取得
+    background_r = r_bins[np.argmax(r_hist)]
+    background_g = g_bins[np.argmax(g_hist)] 
+    background_b = b_bins[np.argmax(b_hist)]
+
+    bg_color = (int(background_r), int(background_g), int(background_b))
+    
     # 矩形領域と下線部領域を白に塗りつぶす
     for i, rect in enumerate(rect_coords):
-        cv2.drawContours(img_OCR_original, rect_coords, i, (255, 255, 255), 15)
+        #cv2.drawContours(img_OCR_original, rect_coords, i, (255, 255, 255), 10)
+        cv2.drawContours(img_OCR_original, rect_coords, i, bg_color, 15)
         
     for i in range(len(underline_coords)):
         x1, y1, x2, y2 = underline_coords[i]
-        cv2.line(img_OCR_original, (x1, y1), (x2, y2), (255, 255, 255), 15)
+        #cv2.line(img_OCR_original, (x1, y1), (x2, y2), (255, 255, 255), 10)
+        cv2.line(img_OCR_original, (x1, y1), (x2, y2), bg_color, 15)
         
     results_path = './results/labels' 
     cv2.imwrite(f'{results_path}/1_before_OCR.png', img_OCR_original) # 確認用
@@ -140,7 +157,7 @@ def label_prediction(rects: np.ndarray, underlines: List[np.ndarray], txts: str,
         underline_labels = ['string' for _ in underlines]
         for i in range(len(b_box_centers)):
             for j in range(len(underlines)):
-                if b_box_centers[i][0] < underlines[j][0] and b_box_centers[i][1] < underlines[j][1]:
+                if b_box_centers[i][0] < underlines[j][2] and b_box_centers[i][1] < underlines[j][3]:
                     underline_labels[j] = text_atts[i]
                     
     export_label_data(rect_labels, rects, underline_labels, underlines, file_name)
@@ -157,7 +174,9 @@ def main():
     
     try:
         #input_path = './sample/seikyuu.jpg'
-        input_path = './sample/nouhin.jpg'
+        #input_path = './sample/nouhin.jpg'
+        input_path = './sample/seikyuu_camera.jpg'
+        #input_path = './sample/kensyuusyo.jpg'
         #input_path = './sample/sample4.jpg'
         #input_path = './sample/sample.png'
         
@@ -215,7 +234,7 @@ def main():
 
     # 実行時間の計測終了
     time_end = time.perf_counter()
-    
+
     # 実行時間の計算と表示
     execution_time = time_end - time_start
     print(f"\nexecution time: {execution_time}sec")
