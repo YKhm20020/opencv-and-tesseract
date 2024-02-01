@@ -79,12 +79,12 @@ def process_image_underline(input_img: np.ndarray) -> Tuple[np.ndarray, np.ndarr
     img_bw_inv = cv2.bitwise_not(img_bw)
     
     # Canny 法によるエッジ検出（下線部検出のみ）
-    # med_val = np.median(img_bw_inv)
-    # sigma = 0.33
-    # min_val = int(max(0, (1.0 - sigma) * med_val))
-    # max_val = int(max(255, (1.0 + sigma) * med_val))
-    # img_edges = cv2.Canny(img_bw, threshold1=min_val, threshold2=max_val, apertureSize=5, L2gradient=True)
-    # cv2.imwrite(f'{results_path}/3_edges.png', img_edges) # 確認用
+    med_val = np.median(img_bw_inv)
+    sigma = 0.33
+    min_val = int(max(0, (1.0 - sigma) * med_val))
+    max_val = int(max(255, (1.0 + sigma) * med_val))
+    img_edges = cv2.Canny(img_bw, threshold1=min_val, threshold2=max_val, apertureSize=5, L2gradient=True)
+    cv2.imwrite(f'{results_path}/3_edges.png', img_edges) # 確認用
     
     return img_bw_inv, retval
 
@@ -357,7 +357,8 @@ def main():
 
         #input_path = './sample/sample2.jpg'
         #input_path = './sample/seikyuu.jpg'
-        input_path = './sample/seikyuu_camera.jpg'
+        input_path = './sample/nouhin_camera.jpg'
+        #input_path = './sample/seikyuu_camera.jpg'
         #input_path = './sample/sample.png'
         #input_path = './sample/P/（158-000306）自動車保険契約内容変更依頼書/作成/【ベース】AA300319_1-1.jpg'
         #input_path = './sample/P/（158-000306）自動車保険契約内容変更依頼書/作成/変更_AA300319.pdf'

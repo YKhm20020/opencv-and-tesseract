@@ -174,8 +174,10 @@ def main():
     
     try:
         #input_path = './sample/seikyuu.jpg'
-        #input_path = './sample/nouhin.jpg'
-        input_path = './sample/seikyuu_camera.jpg'
+        input_path = './sample/nouhin.jpg'
+        #input_path = './sample/nouhin_camera.jpg'
+        #input_path = './sample/seikyuu_camera.jpg'
+        #input_path = './sample/syuttyou.jpg'
         #input_path = './sample/kensyuusyo.jpg'
         #input_path = './sample/sample4.jpg'
         #input_path = './sample/sample.png'
